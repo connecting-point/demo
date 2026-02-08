@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ feature }} | Coming Soon | 360 Vision</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  body {
+    background: linear-gradient(135deg, #141e30, #243b55);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    max-width: 520px;
+    width: 90%;
+    animation: fadeIn 1s ease-in-out;
+  }
+  .card i {
+    font-size: 4rem;
+    color: #00e6ff;
+    margin-bottom: 15px;
+  }
+  .btn-back {
+    background: linear-gradient(135deg,#00e6ff,#0099cc);
+    border: none;
+    color: #fff;
+    border-radius: 25px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+  .btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,230,255,0.4);
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <i class="bi bi-tools"></i>
+    <h3>🚧 {{ feature }} – Coming Soon</h3>
+    <p class="mt-3 text-light">
+      This section is currently being developed to enhance your 360 Vision platform.  
+      Our team is working hard to make it live soon.
+    </p>
+    <div class="mt-4">
+      <a href="{{ url_for('admin_dashboard') }}" class="btn-back">
+        <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+      </a>
+    </div>
+  </div>
+</body>
+</html>
+

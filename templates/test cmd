@@ -1,0 +1,38 @@
+cd /data/apps/employee_db
+docker build -t employee_attendance .
+docker stop employee_attendance && docker rm employee_attendance
+docker run -d -p 5050:5050 --name employee_attendance employee_attendance
+
+docker logs employee_attendance
+
+docker stop employee_attendance && docker rm employee_attendance
+docker build -t employee_attendance .
+docker run -d -p 5050:5050 --name employee_attendance employee_attendance
+docker logs -f employee_attendance
+
+
+# Stop and remove old container
+docker stop employee_attendance && docker rm employee_attendance
+
+docker build -t employee_attendance .
+
+docker stop employee_attendance && docker rm employee_attendance
+docker run -d -p 5050:5050 \
+  --name employee_attendance \
+  -v /data/employee_db_data/employees.db:/app/employees.db \
+  -v /data/employee_db_data/uploads:/app/static/uploads \
+  -v /data/employee_db_data/attendance_photos:/app/static/attendance_photos \
+  employee_attendance
+
+
+docker stop employee_attendance
+docker rm employee_attendance
+
+docker build -t employee_attendance .
+docker stop employee_attendance && docker rm employee_attendance
+docker run -d -p 5050:5050 --name employee_attendance employee_attendance
+
+docker restart employee_attendance
+
+
+

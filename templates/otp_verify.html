@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify OTP | 360 Vision</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg,#141e30,#243b55);
+      color:#fff;
+      font-family:'Poppins',sans-serif;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .verify-box {
+      background:rgba(255,255,255,0.1);
+      padding:45px 40px;
+      border-radius:16px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.3);
+      width:100%;
+      max-width:420px;
+      text-align:center;
+      backdrop-filter:blur(10px);
+      position: relative;
+    }
+    .verify-box h2 {
+      color:#00e6ff;
+      font-weight:600;
+      margin-bottom:25px;
+      margin-top:10px;
+    }
+    .lock-icon {
+      font-size:3rem;
+      color:#00e6ff;
+      margin-bottom:15px;
+      animation:pulse 1.5s infinite;
+      transition:color 0.5s ease, transform 0.5s ease;
+    }
+    @keyframes pulse {
+      0%,100% { transform:scale(1); opacity:1; }
+      50% { transform:scale(1.1); opacity:0.8; }
+    }
+    .lock-success {
+      color:#00ffb3 !important;
+      animation:none !important;
+      transform:scale(1.1);
+    }
+    .otp-input {
+      width:100%;
+      border-radius:10px;
+      background-color:rgba(255,255,255,0.15);
+      color:#fff;
+      border:none;
+      text-align:center;
+      font-size:1.5rem;
+      font-weight:600;
+      padding:12px;
+      letter-spacing:8px;
+      box-shadow:inset 0 0 8px rgba(0,230,255,0.15);
+    }
+    .otp-input:focus {
+      background-color:rgba(255,255,255,0.25);
+      box-shadow:0 0 8px #00e6ff;
+      outline:none;
+    }
+    .btn-verify {
+      background-color:#00e6ff;
+      border:none;
+      color:#000;
+      font-weight:600;
+      border-radius:10px;
+      width:100%;
+      padding:12px;
+      margin-top:20px;
+      transition:0.3s;
+      box-shadow:0 0 12px rgba(0,230,255,0.5);
+      position:relative;
+    }
+    .btn-verify:hover {
+      background-color:#00bcd4;
+      box-shadow:0 0 16px rgba(0,230,255,0.8);
+    }
+    .spinner-border { width:1rem; height:1rem; border-width:2px; }
+    .resend-btn {
+      background:none;
+      border:none;
+      color:#00e6ff;
+      font-weight:600;
+      margin-top:15px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+    .resend-btn:hover { color:#00bcd4; }
+    .resend-btn:disabled { color:#666; cursor:not-allowed; }
+    .countdown {
+      color:#aaa;
+      font-size:0.9em;
+      margin-top:5px;
+    }
+    .success-msg {
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      background:rgba(0,255,170,0.15);
+      border:1px solid #00ffb3;
+      color:#00ffb3;
+      padding:10px 20px;
+      border-radius:10px;
+      font-weight:600;
+      animation:fadeInOut 2s forwards;
+    }
+    @keyframes fadeInOut {
+      0%{opacity:0;transform:translate(-50%,-50%) scale(0.8);}
+      20%{opacity:1;transform:translate(-50%,-50%) scale(1);}
+      80%{opacity:1;}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(0.8);}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="verify-box">
+    <div id="lock" class="lock-icon">🔒</div>
+    <h2>Verify OTP</h2>
+
+    <form id="otpForm" method="POST" action="{{ url_for('verify_otp') }}">
+      <input type="text" name="otp" maxlength="6" class="otp-input" placeholder="••••••" required>
+      <button type="submit" id="verifyBtn" class="btn-verify">
+        <span id="verifyText">Verify OTP</span>
+        <span id="spinner" class="spinner-border text-dark ms-2 d-none" role="status"></span>
+      </button>
+    </form>
+
+    <button id="resendBtn" class="resend-btn" disabled>Resend OTP</button>
+    <div class="countdown" id="countdownText">
+      You can resend OTP in <span id="count">60</span> seconds
+    </div>
+  </div>
+
+  <script>
+    // ---------- RESEND OTP TIMER ----------
+    const resendBtn = document.getElementById("resendBtn");
+    const countdownText = document.getElementById("countdownText");
+    const countEl = document.getElementById("count");
+    let count = 60;
+
+    const timer = setInterval(() => {
+      count--;
+      countEl.textContent = count;
+      if (count <= 0) {
+        clearInterval(timer);
+        resendBtn.disabled = false;
+        countdownText.textContent = "You can now resend the OTP.";
+      }
+    }, 1000);
+
+    resendBtn.addEventListener("click", async () => {
+      resendBtn.disabled = true;
+      resendBtn.textContent = "Sending...";
+      countdownText.textContent = "Please wait...";
+      try {
+        const res = await fetch("{{ url_for('resend_otp') }}", { method: "POST" });
+        const data = await res.json();
+        if (data.status === "ok") {
+          alert("OTP resent successfully!");
+          count = 60;
+          countEl.textContent = count;
+          countdownText.textContent = "You can resend OTP in " + count + " seconds";
+          resendBtn.textContent = "Resend OTP";
+          const newTimer = setInterval(() => {
+            count--;
+            countEl.textContent = count;
+            if (count <= 0) {
+              clearInterval(newTimer);
+              resendBtn.disabled = false;
+              countdownText.textContent = "You can now resend the OTP.";
+            }
+          }, 1000);
+        } else {
+          alert("Failed to resend OTP.");
+          resendBtn.disabled = false;
+          resendBtn.textContent = "Resend OTP";
+        }
+      } catch (e) {
+        alert("Network error while resending OTP.");
+        resendBtn.disabled = false;
+        resendBtn.textContent = "Resend OTP";
+      }
+    });
+
+    // ---------- OTP VERIFY (AJAX) ----------
+    const otpForm = document.getElementById("otpForm");
+    const btn = document.getElementById("verifyBtn");
+    const text = document.getElementById("verifyText");
+    const spinner = document.getElementById("spinner");
+    const lock = document.getElementById("lock");
+
+    otpForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      text.textContent = "Verifying...";
+      spinner.classList.remove("d-none");
+      btn.disabled = true;
+      lock.style.animation = "pulse 0.5s infinite";
+
+      try {
+        const formData = new FormData(otpForm);
+        const res = await fetch("{{ url_for('verify_otp') }}", {
+          method: "POST",
+          body: new URLSearchParams(formData),
+        });
+        const data = await res.json();
+
+        spinner.classList.add("d-none");
+
+        if (data.status === "ok") {
+          // ✅ Correct OTP → unlock animation + success then redirect
+          text.textContent = "Verified!";
+          lock.classList.add("lock-success");
+          lock.textContent = "🔓";
+
+          const success = document.createElement("div");
+          success.className = "success-msg";
+          success.innerHTML = "✅ Verified Successfully!";
+          btn.appendChild(success);
+
+          setTimeout(() => {
+            window.location.href = data.redirect_url;
+          }, 1500);
+        } else {
+          // ❌ Wrong / expired / session issue
+          btn.disabled = false;
+          lock.style.animation = "pulse 1.5s infinite";
+          text.textContent = "Verify OTP";
+
+          if (data.status === "invalid") {
+            alert("Invalid OTP. Please try again.");
+          } else if (data.status === "expired") {
+            alert("OTP expired. Please click Resend OTP.");
+          } else if (data.status === "no_session") {
+            alert("Session expired. Please request a new OTP.");
+          } else {
+            alert("Verification failed. Please try again.");
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        spinner.classList.add("d-none");
+        lock.style.animation = "pulse 1.5s infinite";
+        text.textContent = "Verify OTP";
+        alert("Network error. Please try again.");
+      }
+    });
+  </script>
+</body>
+</html>

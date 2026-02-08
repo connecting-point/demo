@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Announcement | 360 Vision</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00e6ff;
+      --success: #25d366;
+      --info: #1877f2;
+      --dark: #141e30;
+      --darker: #0f172a;
+    }
+    body {
+      background: linear-gradient(135deg, var(--dark), #243b55);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      padding-bottom: 60px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    .card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+    }
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .form-control, .form-select {
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .form-control:focus, .form-select:focus {
+      background: rgba(255,255,255,0.15);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.2rem rgba(0,230,255,0.25);
+      color: #fff;
+    }
+    textarea.form-control {
+      min-height: 120px;
+    }
+    .btn {
+      border-radius: 10px;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+    }
+    .btn-primary { background: var(--primary); border: none; }
+    .btn-primary:hover { background: #00bcd4; }
+    .btn-success { background: var(--success); border: none; }
+    .btn-success:hover { background: #1eb45b; }
+    .btn-info { background: var(--info); border: none; }
+    .btn-info:hover { background: #0d5fb8; }
+    .back-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    /* Sidebar */
+    .sidebar {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 15px;
+      height: fit-content;
+      margin-bottom: 20px;
+    }
+    .sidebar h5 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .announcement-item {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+    }
+    .announcement-item .date {
+      font-size: 0.7rem;
+      color: #94a3b8;
+    }
+    .resend-btn {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+    }
+
+    /* Autocomplete */
+    .autocomplete-list {
+      position: absolute;
+      background: rgba(0,0,0,0.8);
+      border-radius: 8px;
+      width: 100%;
+      z-index: 1000;
+      max-height: 180px;
+      overflow-y: auto;
+      display: none;
+      margin-top: 2px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .autocomplete-list div {
+      padding: 8px 12px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .autocomplete-list div:hover {
+      background: rgba(0,230,255,0.2);
+    }
+
+    /* Channel Buttons */
+    .channel-btn {
+      min-width: 120px;
+      font-size: 0.85rem;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .container { margin: 10px auto; padding: 0 10px; }
+      .card { padding: 15px; }
+      .card h2 { font-size: 1.3rem; }
+      .btn { padding: 0.5rem 1rem; font-size: 0.8rem; }
+      .channel-btn { width: 100%; margin-bottom: 8px; }
+      .live-header, .action-bar { flex-direction: column; gap: 10px; }
+      .form-control, .form-select { font-size: 0.85rem; }
+      .sidebar { padding: 12px; }
+      .announcement-item { font-size: 0.8rem; }
+      .resend-btn { width: 100%; margin-top: 5px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="row">
+    <!-- Main Form -->
+    <div class="col-lg-8 order-lg-1 order-2">
+      <h2 class="text-center mb-4">Employee Announcement</h2>
+      <div class="card">
+        <form method="POST" enctype=" yelp/form-data" id="announcementForm">
+          <div class="mb-3">
+            <label>Announcement Type</label>
+            <select name="announcement_type" id="announcementType" class="form-select" required onchange="toggleFields()">
+              <option value="" selected disabled>Select Type</option>
+              <option>Individual</option>
+              <option>Team</option>
+              <option>All Employees</option>
+            </select>
+          </div>
+
+          <div id="individualField" class="mb-3 position-relative" style="display:none;">
+            <label>Search Employee</label>
+            <input type="text" id="employeeSearch" class="form-control" placeholder="Type name or mobile...">
+            <input type="hidden" name="employee_id" id="employeeId">
+            <div id="employeeList" class="autocomplete-list"></div>
+          </div>
+
+          <div id="teamField" class="mb-3" style="display:none;">
+            <label>Select Team</label>
+            <select name="team_name" class="form-select">
+              {% for t in teams %}
+              <option value="{{t}}">{{t}}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label>Announcement Title</label>
+            <input type="text" name="subject" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label>Message</label>
+            <textarea name="message" class="form-control" rows="5" placeholder="Enter message..." required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label>Attach Photo or File</label>
+            <input type="file" name="attachment" class="form-control" accept="image/*,.pdf,.docx,.xlsx,.txt">
+          </div>
+
+          <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+            <button type="button" class="btn btn-primary channel-btn" onclick="confirmSend('email')">
+              <i class="bi bi-envelope"></i> Email
+            </button>
+            <button type="button" class="btn btn-success channel-btn" onclick="confirmSend('whatsapp')">
+              <i class="bi bi-whatsapp"></i> WhatsApp
+            </button>
+            <button type="button" class="btn btn-info channel-btn" onclick="confirmSend('facebook')">
+              <i class="bi bi-facebook"></i> Facebook
+            </button>
+          </div>
+        </form>
+
+        <div class="text-center mt-4">
+          <a href="{{ url_for('admin_dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar: Last 10 Announcements -->
+    <div class="col-lg-4 order-lg-2 order-1 mb-4">
+      <div class="sidebar">
+        <h5 class="mb-3"><i class="bi bi-clock-history"></i> Recent Announcements</h5>
+        <div id="recentAnnouncements" style="max-height: 500px; overflow-y: auto;">
+          {% for ann in recent_announcements %}
+          <div class="announcement-item">
+            <div><strong>{{ ann.subject }}</strong></div>
+            <div class="date">{{ ann.sent_at }}</div>
+            <button class="btn btn-sm btn-outline-light resend-btn w-100 mt-1" onclick="resendAnnouncement({{ ann.id }})">
+              Resend
+            </button>
+          </div>
+          {% else %}
+          <p class="text-muted small">No recent announcements.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">Confirm Send</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body small" id="confirmText"></div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="confirmButton">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Modal -->
+<div class="modal fade" id="progressModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content bg-dark text-white text-center p-3">
+      <h6>Sending via <span id="progressChannel"></span>...</h6>
+      <div class="progress mt-2" style="height:10px;">
+        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width:0%"></div>
+      </div>
+      <p id="progressText" class="mt-2 small">Starting...</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const employees = [{% for e in employees %}{id:{{e.id}},name:"{{e.name}}",email:"{{e.email}}",mobile:"{{e.mobile}}"},{% endfor %}];
+  const recentAnnouncements = {{ recent_announcements|tojson }};
+
+
+  function toggleFields() {
+    const type = document.getElementById('announcementType').value;
+    document.getElementById('individualField').style.display = type === 'Individual' ? 'block' : 'none';
+    document.getElementById('teamField').style.display = type === 'Team' ? 'block' : 'none';
+  }
+
+  // Autocomplete
+  const input = document.getElementById('employeeSearch'), list = document.getElementById('employeeList');
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase(); list.innerHTML = '';
+    if (!q) { list.style.display = 'none'; return; }
+    const matches = employees.filter(e => e.name.toLowerCase().includes(q) || e.mobile.includes(q));
+    matches.forEach(e => {
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>${e.name}</strong> <small>(${e.mobile})</small>`;
+      div.onclick = () => {
+        input.value = `${e.name} (${e.mobile})`;
+        document.getElementById('employeeId').value = e.id;
+        list.style.display = 'none';
+      };
+      list.appendChild(div);
+    });
+    list.style.display = matches.length ? 'block' : 'none';
+  });
+
+  // Resend
+  function resendAnnouncement(id) {
+    const ann = recentAnnouncements.find(a => a.id == id);
+    if (!ann) return alert("Not found.");
+    document.querySelector('[name="subject"]').value = ann.subject;
+    document.querySelector('[name="message"]').value = "[RESEND] " + ann.subject;
+    document.getElementById('announcementType').value = "All Employees";
+    toggleFields();
+    alert("Loaded. Choose channels to resend.");
+  }
+
+  // Send Logic
+  let pendingChannels = [];
+  function confirmSend(channel) {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const text = document.getElementById('confirmText');
+    const btn = document.getElementById('confirmButton');
+    text.innerHTML = `Send via <b>${channel.toUpperCase()}</b>?`;
+    btn.onclick = () => {
+      modal.hide();
+      pendingChannels.push(channel);
+      sendNextChannel();
+    };
+    modal.show();
+  }
+
+  function sendNextChannel() {
+    if (pendingChannels.length === 0) {
+      document.getElementById('announcementForm').reset();
+      toggleFields();
+      return;
+    }
+
+    const channel = pendingChannels.shift();
+    const form = document.getElementById('announcementForm');
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 
+      channel === 'email' ? 'send_email' :
+      channel === 'whatsapp' ? 'send_whatsapp' :
+      'send_facebook';
+    form.appendChild(hidden);
+
+    if (channel === 'email') {
+      showProgress('Email');
+      form.submit();
+    } else if (channel === 'whatsapp') {
+      const empId = document.getElementById('employeeId').value;
+      const emp = employees.find(e => e.id == empId);
+      const msg = document.querySelector('[name="message"]').value;
+      const title = document.querySelector('[name="subject"]').value;
+      const text = `Hi ${emp ? emp.name : ''}!\n\n*${title}*\n\n${msg}\n\n– 360 Vision HR`;
+      window.open(`https://web.whatsapp.com/send?phone=91${emp ? emp.mobile : ''}&text=${encodeURIComponent(text)}`, '_blank');
+      setTimeout(sendNextChannel, 1000);
+    } else if (channel === 'facebook') {
+      const msg = document.querySelector('[name="message"]').value;
+      const title = document.querySelector('[name="subject"]').value;
+      const text = `${title}\n\n${msg}\n\n– 360 Vision HR`;
+      window.open(`https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(text)}`, '_blank');
+      setTimeout(sendNextChannel, 1000);
+    }
+  }
+
+  function showProgress(channelName) {
+    const modal = new bootstrap.Modal(document.getElementById('progressModal'));
+    document.getElementById('progressChannel').textContent = channelName;
+    modal.show();
+    const bar = document.getElementById('progressBar');
+    const txt = document.getElementById('progressText');
+    let p = 0;
+    const int = setInterval(() => {
+      p += 15;
+      bar.style.width = p + '%';
+      txt.innerText = `Sending ${channelName}... ${p}%`;
+      if (p >= 100) {
+        clearInterval(int);
+        txt.innerHTML = 'All emails sent!';
+        setTimeout(() => modal.hide(), 1500);
+      }
+    }, 300);
+  }
+</script>
+</body>
+</html>

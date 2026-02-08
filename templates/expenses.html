@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Submit Expenses</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    :root {
+        --primary-color: #4CAF50; /* Fresh Green */
+        --primary-dark: #388E3C;
+        --secondary-color: #607D8B; /* Blue-grey */
+        --light-bg: #e8f5e9; /* Very light green background */
+        --card-bg: #ffffff;
+        --text-dark: #212121;
+        --text-muted: #757575;
+        --border-light: #e0e0e0;
+        --shadow-light: 0 2px 4px rgba(0,0,0,0.08);
+        --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--light-bg);
+        color: var(--text-dark);
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 900px; /* Wider for more form columns */
+        padding-top: 2.5rem;
+        padding-bottom: 2.5rem;
+    }
+
+    /* --- Page Header --- */
+    .page-header {
+        background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+        color: #fff;
+        padding: 1.8rem 2rem;
+        border-radius: 12px;
+        box-shadow: var(--shadow-medium);
+        margin-bottom: 2.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h3 {
+        font-weight: 600;
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 2rem;
+    }
+    .page-header h3 i {
+        font-size: 1.8rem;
+    }
+
+    .page-header .btn-back {
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    .page-header .btn-back:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-light);
+    }
+
+    /* --- Flash Messages --- */
+    .alert {
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        padding: 1rem 1.5rem;
+        border-left: 5px solid;
+        margin-bottom: 1.5rem;
+    }
+    .alert-success { border-color: #28a745; }
+    .alert-danger { border-color: #dc3545; }
+
+    /* --- Form Section (Each Expense Row) --- */
+    .form-section {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-light);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem; /* More space between rows */
+        border-radius: 12px; /* Softer rounded corners */
+        box-shadow: var(--shadow-light); /* Subtle shadow */
+        position: relative; /* For remove button positioning */
+    }
+    .form-section:first-of-type {
+        margin-top: 1rem; /* Space between filter form and first expense row */
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: var(--text-dark);
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+        outline: none;
+    }
+
+    /* --- Bill Preview --- */
+    .preview-img-container {
+      position: relative;
+      display: inline-block; /* To allow alignment of image and remove button */
+      margin-top: 10px;
+    }
+    .preview-img {
+        max-height: 80px; /* Larger preview */
+        max-width: 100%;
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+        object-fit: contain; /* Ensure image fits without stretching */
+    }
+
+    /* --- Remove Button (Row) --- */
+    .remove-btn {
+        position: absolute; /* Position relative to .form-section */
+        top: 15px; /* Adjust as needed */
+        right: 15px;
+        background-color: #fcebeb; /* Light red background */
+        color: #dc3545; /* Red text */
+        border-radius: 50%; /* Circular button */
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+        z-index: 10;
+        border: 1px solid #dc3545; /* Red border */
+    }
+    .remove-btn:hover {
+        background-color: #dc3545;
+        color: #fff;
+        transform: scale(1.1);
+    }
+
+    /* --- Action Buttons (Add/Submit) --- */
+    .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem; /* Space between buttons */
+        justify-content: flex-end; /* Align to right */
+        margin-top: 2rem;
+    }
+
+    .btn-action {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.25s ease;
+        box-shadow: var(--shadow-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-outline-primary.btn-action {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+    .btn-outline-primary.btn-action:hover {
+        background-color: var(--primary-color);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .btn-success.btn-action {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    .btn-success.btn-action:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    /* --- Toast Message (Submitting) --- */
+    .submit-toast {
+        position: fixed;
+        bottom: 20px; /* Position at bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--primary-dark);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        box-shadow: var(--shadow-medium);
+        z-index: 10000;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: fadeInOut 4s forwards; /* Basic animation */
+    }
+
+    @keyframes fadeInOut {
+        0% { opacity: 0; bottom: 0; }
+        10% { opacity: 1; bottom: 20px; }
+        90% { opacity: 1; bottom: 20px; }
+        100% { opacity: 0; bottom: 0; }
+    }
+
+    /* --- Responsive Adjustments --- */
+    @media (max-width: 767.98px) {
+        .container {
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .page-header h3 {
+            font-size: 1.5rem;
+            text-align: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .page-header .btn-back {
+            width: 100%;
+            text-align: center;
+        }
+
+        .form-section {
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .form-section .col-md-3,
+        .form-section .col-md-2,
+        .form-section .col-md-1 {
+            width: 100%; /* Stack columns on small screens */
+            margin-bottom: 0.8rem !important; /* Consistent spacing */
+        }
+        .form-section .col-md-12 { /* For remove button if it's in a col-12 */
+            width: 100%;
+            text-align: right;
+        }
+        .form-section .form-label {
+            margin-bottom: 0.4rem;
+        }
+        .form-section .form-control, .form-section .form-select {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
+        }
+        .remove-btn {
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            font-size: 0.9rem;
+        }
+        .preview-img {
+            max-height: 60px; /* Adjust preview size for mobile */
+        }
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+            margin-top: 1.5rem;
+        }
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+            padding: 0.6rem 1rem;
+        }
+
+        .submit-toast {
+            font-size: 0.9rem;
+            padding: 10px 20px;
+        }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <h3><i class="fas fa-money-check-alt"></i> Submit New Expenses</h3>
+    <a href="{{ url_for('my_expenses') }}" class="btn btn-secondary btn-back"><i class="fas fa-arrow-left"></i> Back to My Expenses</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" enctype="multipart/form-data" id="expenseForm">
+    <div id="expenseRows">
+      </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-outline-primary btn-action" onclick="addExpenseRow()">
+        <i class="fas fa-plus-circle"></i> Add Expense
+      </button>
+      <button type="submit" class="btn btn-success btn-action" id="submitAllExpensesBtn">
+        <i class="fas fa-check-circle"></i> Submit All Expenses
+      </button>
+    </div>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let rowIndex = 0;
+
+// Function to add a new expense row
+function addExpenseRow() {
+  const container = document.getElementById('expenseRows');
+  const html = `
+    <div class="form-section row g-3 align-items-end" id="row-${rowIndex}">
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label">Title</label>
+        <select name="title[]" class="form-select" onchange="toggleCustomTitle(this, ${rowIndex})">
+          <option value="Travel">Travel</option>
+          <option value="Food">Food</option>
+          <option value="Accommodation">Accommodation</option>
+          <option value="Miscellaneous">Miscellaneous</option>
+        </select>
+        <input type="text" name="custom_title[]" class="form-control mt-2 d-none" placeholder="Custom Title" aria-label="Custom Title">
+      </div>
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label">Amount (₹)</label>
+        <input type="number" name="amount[]" step="0.01" class="form-control" required>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label">Date</label>
+        <input type="date" name="expense_date[]" class="form-control" required max="${new Date().toISOString().split('T')[0]}">
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label">Description</label>
+        <input type="text" name="description[]" class="form-control">
+      </div>
+      <div class="col-md-1 col-12 text-center d-flex flex-column align-items-center justify-content-center">
+        <label class="form-label mb-2">Bill</label>
+        <input type="file" name="bill_photo[]" class="form-control form-control-sm" accept="image/*, application/pdf" onchange="previewBill(this, ${rowIndex})">
+        <div class="preview-img-container">
+            <img id="preview-${rowIndex}" class="preview-img" style="display:none;" alt="Bill Preview">
+        </div>
+      </div>
+      <button type="button" class="remove-btn" onclick="removeRow(${rowIndex})" aria-label="Remove expense row">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>`;
+  container.insertAdjacentHTML('beforeend', html);
+  rowIndex++;
+  // Scroll to the newly added row
+  container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+// Function to remove an expense row
+function removeRow(index) {
+  const row = document.getElementById(`row-${index}`);
+  if (row) {
+    row.classList.add('fade-out'); // Add fade-out class
+    row.addEventListener('transitionend', () => row.remove()); // Remove after transition
+  }
+}
+
+// Function to preview bill photo
+function previewBill(input, index) {
+  const file = input.files[0];
+  const preview = document.getElementById(`preview-${index}`);
+  if (file) {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+      // For PDFs, just show a placeholder icon
+      preview.src = "https://img.icons8.com/color/48/000000/pdf.png"; /* Example PDF icon */
+      preview.style.display = 'block';
+      preview.style.height = '60px'; // Adjust height for icon
+      preview.style.width = 'auto';
+    } else {
+      preview.style.display = 'none'; // Hide if not an image or PDF
+    }
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+// Function to toggle custom title input for "Miscellaneous"
+function toggleCustomTitle(select, index) {
+  const customInput = select.parentElement.querySelector('input[name="custom_title[]"]');
+  if (select.value === "Miscellaneous") {
+    customInput.classList.remove("d-none");
+    customInput.required = true;
+  } else {
+    customInput.classList.add("d-none");
+    customInput.required = false;
+    customInput.value = ''; // Clear custom input if not miscellaneous
+  }
+}
+
+window.onload = () => {
+  addExpenseRow(); // Add one row by default on page load
+
+  // Set max date for expense_date inputs to today
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[name="expense_date[]"]').forEach(input => {
+    input.setAttribute('max', today);
+  });
+
+  // Handle form submission to prevent multiple submissions and show toast
+  const form = document.getElementById("expenseForm");
+  const submitBtn = document.getElementById("submitAllExpensesBtn");
+  
+  form.addEventListener("submit", function (e) {
+    if (submitBtn.disabled) {
+      e.preventDefault(); // Stop if already submitted
+      return;
+    }
+
+    // Basic form validation for amount and date
+    let isValid = true;
+    document.querySelectorAll('#expenseRows .form-section').forEach(row => {
+        const amountInput = row.querySelector('input[name="amount[]"]');
+        const dateInput = row.querySelector('input[name="expense_date[]"]');
+        const customTitleInput = row.querySelector('input[name="custom_title[]"]');
+        const titleSelect = row.querySelector('select[name="title[]"]');
+
+        if (amountInput && (amountInput.value === '' || parseFloat(amountInput.value) <= 0)) {
+            amountInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            amountInput.classList.remove('is-invalid');
+        }
+
+        if (dateInput && dateInput.value === '') {
+            dateInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            dateInput.classList.remove('is-invalid');
+        }
+
+        if (titleSelect && titleSelect.value === 'Miscellaneous' && customTitleInput && customTitleInput.value.trim() === '') {
+            customTitleInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+             if(customTitleInput) customTitleInput.classList.remove('is-invalid');
+        }
+    });
+
+    if (!isValid) {
+        e.preventDefault();
+        // Show a temporary alert or toast for validation error
+        const validationErrorToast = document.createElement("div");
+        validationErrorToast.className = "submit-toast";
+        validationErrorToast.style.backgroundColor = "#dc3545"; // Red for error
+        validationErrorToast.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please fill in all required fields and correct errors.';
+        document.body.appendChild(validationErrorToast);
+        setTimeout(() => validationErrorToast.remove(), 3000); // Remove after 3 seconds
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+    
+    // Show a custom toast message
+    const submitToast = document.createElement("div");
+    submitToast.className = "submit-toast";
+    submitToast.innerHTML = '<i class="fas fa-paper-plane"></i> Submitting your expenses...';
+    document.body.appendChild(submitToast);
+  });
+
+  // Initialize Bootstrap alerts
+  document.querySelectorAll('.alert').forEach(function (alertElement) {
+      new bootstrap.Alert(alertElement);
+  });
+};
+</script>
+</body>
+</html>

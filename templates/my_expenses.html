@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Submitted Expenses</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50; /* A fresh green */
+            --primary-dark: #388E3C;
+            --secondary-color: #607D8B; /* Blue-grey */
+            --light-bg: #e8f5e9; /* Very light green background */
+            --card-bg: #ffffff;
+            --text-dark: #212121;
+            --text-muted: #757575;
+            --border-light: #e0e0e0;
+            --shadow-light: 0 2px 4px rgba(0,0,0,0.08);
+            --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            padding-top: 2.5rem;
+            padding-bottom: 2.5rem;
+        }
+
+        /* --- Page Header --- */
+        .page-header {
+            background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+            color: #fff;
+            padding: 1.8rem 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden; /* For pseudo-elements */
+        }
+
+        .page-header h3 {
+            font-weight: 600;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 2rem; /* Larger heading */
+        }
+        .page-header h3 i {
+            font-size: 1.8rem;
+        }
+
+        .page-header .btn-back {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .page-header .btn-back:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        /* --- Filter Form Card --- */
+        .filter-form-card {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+            margin-bottom: 2.5rem;
+        }
+
+        .filter-form-card .form-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+        }
+
+        .filter-form-card .form-control,
+        .filter-form-card .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .filter-form-card .form-control:focus,
+        .filter-form-card .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25); /* Primary color with transparency */
+            outline: none;
+        }
+
+        .filter-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .btn-action {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary.btn-action {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary.btn-action:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+        .btn-success.btn-action {
+            background-color: #28a745; /* Bootstrap green */
+            border-color: #28a745;
+        }
+        .btn-success.btn-action:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+        .btn-outline-dark.btn-action {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+        .btn-outline-dark.btn-action:hover {
+            background-color: var(--secondary-color);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* --- Table/Expense List Styles --- */
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+            overflow: hidden; /* Ensures rounded corners */
+        }
+
+        .table-bordered {
+            border: 1px solid var(--border-light);
+        }
+
+        .table th, .table td {
+            padding: 1.1rem 1.2rem;
+            vertical-align: middle;
+            border-color: var(--border-light);
+            font-size: 0.95rem;
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            border-color: var(--primary-dark);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #e8f5e9; /* Light green on hover */
+        }
+
+        .table-row-empty {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 2rem;
+            font-size: 1.1rem;
+        }
+
+        /* Status Badges */
+        .badge-status {
+            padding: 0.6em 1em;
+            border-radius: 50px; /* Pill shape */
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .bg-success { background-color: #28a745 !important; }
+        .bg-danger { background-color: #dc3545 !important; }
+        .bg-warning { background-color: #ffc107 !important; color: var(--text-dark) !important; }
+
+        .rejection-comment {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+            display: block;
+        }
+
+        /* Bill Photo Button */
+        .btn-bill-view {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-bill-view:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 991.98px) { /* Adjust breakpoint for larger tablets */
+            .page-header h3 {
+                font-size: 1.7rem;
+            }
+            .page-header .btn-back {
+                padding: 8px 15px;
+            }
+            .filter-form-card {
+                padding: 1.5rem;
+            }
+            .filter-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-action {
+                width: 100%;
+                justify-content: center; /* Center icons and text */
+            }
+
+            /* Table to Card View */
+            .table-container table {
+                border: none !important; /* Remove outer table borders */
+            }
+            .table thead {
+                display: none; /* Hide standard table header */
+            }
+            .table tbody {
+                display: block; /* Make tbody a block element */
+                width: 100%;
+            }
+            .table tr {
+                display: block;
+                background-color: var(--card-bg);
+                border: 1px solid var(--border-light);
+                border-radius: 10px;
+                margin-bottom: 1.2rem; /* Space between cards */
+                box-shadow: var(--shadow-light);
+                padding: 1rem;
+            }
+            .table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right; /* Value on the right */
+                padding: 0.6rem 0; /* Vertical padding within card cell */
+                border-bottom: 1px dashed rgba(0,0,0,0.08); /* Light separator */
+                font-size: 0.9rem;
+            }
+            .table td:last-child {
+                border-bottom: none; /* No separator for the last item */
+            }
+            .table td::before {
+                content: attr(data-label);
+                font-weight: 500;
+                color: var(--secondary-color);
+                text-align: left;
+                flex-shrink: 0; /* Prevent label from shrinking */
+                padding-right: 15px;
+            }
+            .table td:first-child { /* Special styling for Title */
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: var(--primary-dark);
+                border-bottom: 1px solid var(--border-light);
+                padding-bottom: 1rem;
+                margin-bottom: 0.5rem;
+                display: block; /* Take full width */
+                text-align: left; /* Title left-aligned */
+            }
+            .table td[data-label="Status"] {
+                 flex-direction: column; /* Stack badge and reason */
+                 align-items: flex-end;
+            }
+            .table td[data-label="Status"] .rejection-comment {
+                text-align: right;
+            }
+        }
+
+        @media (max-width: 575.98px) { /* Smaller phones */
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 1.2rem 1.5rem;
+            }
+            .page-header h3 {
+                font-size: 1.5rem;
+                text-align: center;
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
+            .page-header .btn-back {
+                width: 100%;
+                text-align: center;
+            }
+            .filter-form-card {
+                padding: 1.2rem;
+            }
+            .filter-form-card .col-sm-6, .filter-form-card .col-md-3 {
+                width: 100%; /* Ensure all filter inputs stack */
+            }
+            .table td {
+                font-size: 0.85rem;
+            }
+            .table td:first-child {
+                font-size: 1rem;
+            }
+            .table td::before {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container">
+
+    <div class="page-header">
+        <h3><i class="fas fa-file-invoice-dollar"></i> My Submitted Expenses</h3>
+        <a href="/attendance" class="btn btn-secondary btn-back">⬅ Back</a>
+    </div>
+
+    <div class="filter-form-card">
+        <form method="POST" class="row g-3 align-items-end">
+            <div class="col-md-3 col-sm-6">
+                <label for="month" class="form-label">Month</label>
+                <select name="month" id="month" class="form-select">
+                    <option value="">--Any Month--</option>
+                    {% for m in range(1, 13) %}
+                        <option value="{{ '{:02d}'.format(m) }}" {% if selected_month and selected_month == '{:02d}'.format(m) %}selected{% endif %}>
+                            {{ '{:02d}'.format(m) }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <label for="year" class="form-label">Year</label>
+                <select name="year" id="year" class="form-select">
+                    <option value="">--Any Year--</option>
+                    {% for y in range(2023, 2031) %}
+                        <option value="{{ y }}" {% if selected_year and selected_year == y|string %}selected{% endif %}>
+                            {{ y }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <label for="date_from" class="form-label">Date From</label>
+                <input type="date" name="date_from" id="date_from" class="form-control" value="{{ selected_date_from or '' }}">
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <label for="date_to" class="form-label">Date To</label>
+                <input type="date" name="date_to" id="date_to" class="form-control" value="{{ selected_date_to or '' }}">
+            </div>
+
+            <div class="col-12 filter-actions">
+                <button type="submit" class="btn btn-primary btn-action"><i class="fas fa-filter"></i> Apply Filter</button>
+                <a href="{{ url_for('export_expenses') }}" class="btn btn-success btn-action"><i class="fas fa-download"></i> Download Excel</a>
+                <a href="{{ url_for('submit_expense') }}" class="btn btn-outline-dark btn-action"><i class="fas fa-plus-circle"></i> Add My Expense</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-bordered table-hover align-middle text-center bg-white">
+            <thead class="table-light">
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Bill</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in expenses %}
+                <tr>
+                    <td data-label="Title">{{ e['title'] }}</td>
+                    <td data-label="Amount">₹{{ e['amount'] }}</td>
+                    <td data-label="Date">{{ e['expense_date'] }}</td>
+                    <td data-label="Description">{{ e['description'] }}</td>
+                    <td data-label="Bill">
+                        {% if e['bill_photo'] %}
+                            <a href="{{ url_for('static', filename=e['bill_photo'].replace('static/', '')) }}" target="_blank" class="btn btn-sm btn-outline-primary btn-bill-view">View</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td data-label="Status">
+                        {% if e['status'] == 'Approved' %}
+                            <span class="badge bg-success badge-status">Approved</span>
+                        {% elif e['status'] == 'Rejected' %}
+                            <span class="badge bg-danger badge-status">Rejected</span>
+                            {% if e['rejection_comment'] %}
+                                <div class="rejection-comment">Reason: {{ e['rejection_comment'] }}</div>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-warning text-dark badge-status">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="table-row-empty">No expenses found for the selected criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Set selected values for filter inputs on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const monthSelect = document.getElementById('month');
+        const yearSelect = document.getElementById('year');
+        const dateFromInput = document.getElementById('date_from');
+        const dateToInput = document.getElementById('date_to');
+
+        const currentMonth = "{{ selected_month or '' }}";
+        const currentYear = "{{ selected_year or '' }}";
+        const currentDateFrom = "{{ selected_date_from or '' }}";
+        const currentDateTo = "{{ selected_date_to or '' }}";
+
+        if (currentMonth) monthSelect.value = currentMonth;
+        if (currentYear) yearSelect.value = currentYear;
+        if (currentDateFrom) dateFromInput.value = currentDateFrom;
+        if (currentDateTo) dateToInput.value = currentDateTo;
+    });
+</script>
+</body>
+</html>

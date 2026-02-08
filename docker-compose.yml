@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  employee_attendance:
+    build: .
+    container_name: employee_attendance
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./employees.db:/app/employees.db  # Persist SQLite DB
+      - ./flask_session:/tmp/flask_session  # Persist Flask sessions
+      - ./logs:/app/logs  # Optional: log storage
+    restart: always
+    environment:
+      - TZ=Asia/Kolkata
+

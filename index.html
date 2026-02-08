@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance (Manual Camera)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    form {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,255,255,0.2);
+    }
+    input, textarea, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background-color: #00c3ff;
+      font-weight: bold;
+      color: #000;
+      cursor: pointer;
+    }
+    img {
+      margin-top: 10px;
+      width: 100%;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Employee Attendance</h2>
+  <form id="attendanceForm">
+    <input type="text" name="employee_code" placeholder="Employee Code" required>
+    <textarea name="note" placeholder="Optional Note..."></textarea>
+    <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf">
+    <input type="file" accept="image/*" capture="environment" id="cameraInput" required>
+    <input type="hidden" name="photo" id="photoField">
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+    <button type="button" onclick="submitAttendance('in')">Punch In</button>
+    <button type="button" onclick="submitAttendance('out')">Punch Out</button>
+    <img id="preview" style="display:none;">
+  </form>
+
+  <script>
+    const cameraInput = document.getElementById('cameraInput');
+    const preview = document.getElementById('preview');
+    const photoField = document.getElementById('photoField');
+
+    cameraInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          photoField.value = reader.result;
+          preview.src = reader.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    navigator.geolocation.getCurrentPosition(pos => {
+      document.getElementById("latitude").value = pos.coords.latitude;
+      document.getElementById("longitude").value = pos.coords.longitude;
+    });
+
+    function submitAttendance(type) {
+      const form = document.getElementById("attendanceForm");
+      const formData = new FormData(form);
+      formData.append("type", type);
+
+      if (!photoField.value) {
+        alert("Please capture a photo.");
+        return;
+      }
+
+      fetch("/attendance", {
+        method: "POST",
+        body: formData
+      }).then(res => {
+        if (res.ok) alert("Attendance submitted!");
+        else alert("Submission failed.");
+      });
+    }
+  </script>
+</body>
+</html>

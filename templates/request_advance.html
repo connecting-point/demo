@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advance Salary Request</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50; /* Fresh Green */
+            --primary-dark: #388E3C;
+            --secondary-color: #607D8B; /* Blue-grey */
+            --light-bg: #e8f5e9; /* Very light green background */
+            --card-bg: #ffffff;
+            --text-dark: #212121;
+            --text-muted: #757575;
+            --border-light: #e0e0e0;
+            --shadow-light: 0 2px 4px rgba(0,0,0,0.08);
+            --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 650px; /* Slightly wider for better form layout */
+            padding-top: 2.5rem;
+            padding-bottom: 2.5rem;
+        }
+
+        /* --- Back Button --- */
+        .btn-back-dashboard {
+            display: inline-flex; /* Use flex for icon and text alignment */
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2rem;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow-light);
+        }
+        .btn-back-dashboard:hover {
+            background-color: var(--secondary-color);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* --- Request Card --- */
+        .request-card {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 2.5rem;
+        }
+
+        .request-card h4 {
+            font-weight: 600;
+            color: var(--primary-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.8rem;
+        }
+        .request-card h4 i {
+            font-size: 1.6rem;
+        }
+
+        .salary-info {
+            background-color: #e0f2f1; /* Light teal/greenish for info */
+            border-left: 5px solid var(--primary-color);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+        .salary-info strong {
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        .salary-info .warning-text {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .salary-info .warning-text i {
+            color: #ffc107; /* Warning yellow */
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+            outline: none;
+        }
+
+        .btn-submit-request {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow-light);
+        }
+        .btn-submit-request:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* --- History Card --- */
+        .history-card {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .history-card h5 {
+            font-weight: 600;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1.5rem;
+        }
+        .history-card h5 i {
+            font-size: 1.3rem;
+        }
+
+        .table-history {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-history th, .table-history td {
+            padding: 1rem;
+            border: 1px solid var(--border-light);
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+        .table-history thead th {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-color: var(--primary-dark);
+        }
+        .table-history tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .table-history tbody tr:hover {
+            background-color: #e8f5e9; /* Light green hover */
+        }
+
+        .badge-status {
+            padding: 0.6em 1em;
+            border-radius: 50px; /* Pill shape */
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .bg-success { background-color: #28a745 !important; }
+        .bg-danger { background-color: #dc3545 !important; }
+        .bg-warning { background-color: #ffc107 !important; color: var(--text-dark) !important; }
+
+        /* --- Flash Messages --- */
+        .alert {
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 1rem 1.5rem;
+            border-left: 5px solid; /* For accent */
+        }
+        .alert-success { border-color: #28a745; }
+        .alert-danger { border-color: #dc3545; }
+        .alert-warning { border-color: #ffc107; }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 767.98px) {
+            .container {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+            .btn-back-dashboard {
+                margin-bottom: 1.5rem;
+                width: 100%;
+                justify-content: center;
+            }
+            .request-card, .history-card {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            .request-card h4 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            .request-card h4 i {
+                font-size: 1.3rem;
+            }
+            .salary-info {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            .form-control, .form-select {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .btn-submit-request {
+                padding: 0.6rem 1rem;
+                font-size: 0.95rem;
+            }
+            .history-card h5 {
+                font-size: 1.3rem;
+                margin-bottom: 1rem;
+            }
+            .history-card h5 i {
+                font-size: 1.1rem;
+            }
+
+            /* Table for History */
+            .table-responsive table {
+                border: none !important;
+            }
+            .table-history thead {
+                display: none;
+            }
+            .table-history tbody, .table-history tr {
+                display: block;
+                width: 100%;
+            }
+            .table-history tr {
+                background-color: var(--card-bg);
+                border: 1px solid var(--border-light);
+                border-radius: 10px;
+                margin-bottom: 1rem;
+                box-shadow: var(--shadow-light);
+                padding: 0.8rem;
+            }
+            .table-history td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                padding: 0.5rem 0;
+                border-bottom: 1px dashed rgba(0,0,0,0.08);
+                font-size: 0.85rem;
+            }
+            .table-history td:last-child {
+                border-bottom: none;
+            }
+            .table-history td::before {
+                content: attr(data-label);
+                font-weight: 500;
+                color: var(--secondary-color);
+                text-align: left;
+                flex-shrink: 0;
+                padding-right: 15px;
+            }
+            .table-history td[data-label="Status"] {
+                 flex-direction: column; /* Stack badge and reason */
+                 align-items: flex-end;
+            }
+            .table-history td[data-label="Comment"] {
+                flex-direction: column; /* Stack label and comment */
+                align-items: flex-end;
+            }
+        }
+        @media (max-width: 480px) {
+            .request-card h4 {
+                font-size: 1.3rem;
+            }
+            .request-card h4 i {
+                font-size: 1.1rem;
+            }
+            .history-card h5 {
+                font-size: 1.1rem;
+            }
+            .history-card h5 i {
+                font-size: 0.9rem;
+            }
+            .salary-info {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <a href="/attendance" class="btn btn-secondary btn-back">⬅ Back</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="request-card">
+        <h4><i class="fas fa-coins"></i> Request Advance Salary</h4>
+
+        <div class="salary-info">
+            <div><strong>Monthly Salary:</strong> ₹{{ monthly_salary }}</div>
+            <div class="warning-text"><i class="fas fa-exclamation-triangle"></i> You can request up to **40%** (₹{{ max_request }}) of your salary.</div>
+        </div>
+
+        <form method="POST" action="{{ url_for('request_advance') }}">
+            <div class="mb-3">
+                <label for="amount" class="form-label">Advance Amount (₹)</label>
+<input type="number" class="form-control" id="amount" name="amount" step="1"
+  {% if max_request|float >= 1 %}
+    min="1" max="{{ max_request }}" required
+  {% else %}
+    min="0" max="0" disabled
+  {% endif %}
+  aria-describedby="amountHelp">
+                <div id="amountHelp" class="form-text">Enter an amount up to ₹{{ max_request }}.</div>
+            </div>
+            <div class="mb-4">
+                <label for="reason" class="form-label">Reason</label>
+                <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+            </div>
+<button type="submit" class="btn btn-primary w-100 btn-submit-request"
+  {% if max_request|float < 1 %}disabled{% endif %}>
+  Submit Request
+</button>
+        </form>
+    </div>
+
+    {% if past_requests %}
+    <div class="history-card">
+        <h5><i class="fas fa-history"></i> Your Advance Salary History</h5>
+        <div class="table-responsive mt-3">
+            <table class="table table-history table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in past_requests %}
+                    <tr>
+                        <td data-label="Date">{{ r.request_date }}</td>
+                        <td data-label="Amount">₹{{ r.amount }}</td>
+                        <td data-label="Status">
+                            {% if r.status == 'Approved' %}
+                                <span class="badge bg-success badge-status">Approved</span>
+                            {% elif r.status == 'Rejected' %}
+                                <span class="badge bg-danger badge-status">Rejected</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark badge-status">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Comment">{{ r.admin_comment or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Initialize Bootstrap alerts (not toasts, these are regular alerts)
+    document.addEventListener('DOMContentLoaded', function () {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function (alert) {
+            new bootstrap.Alert(alert);
+        });
+    });
+</script>
+</body>
+</html>

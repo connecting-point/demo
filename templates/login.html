@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Employee Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: #0d0d0d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .box {
+      position: relative;
+      width: 350px;
+      padding: 40px;
+      background: #1a1a1a;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(255, 0, 255, 0.3);
+      overflow: hidden;
+      color: white;
+      display: none;
+    }
+
+    .box::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 15px 50px #000);
+      border-radius: 20px;
+      animation: rotating 4s linear infinite;
+      animation-delay: -1s;
+      background: linear-gradient(45deg, #00ffff, #ff0055);
+      z-index: -1;
+      inset: 0;
+    }
+
+    .box h3 {
+      text-align: center;
+      color: #ff007f;
+      margin-bottom: 30px;
+      letter-spacing: 2px;
+    }
+
+    .box input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: #0f0f0f;
+      border: 1px solid #444;
+      border-radius: 30px;
+      color: #fff;
+      outline: none;
+    }
+
+    .box button {
+      width: 100%;
+      padding: 12px;
+      background: #00f7ff;
+      border: none;
+      border-radius: 30px;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .box button:hover {
+      background: #00a8ff;
+    }
+
+    .trigger-box {
+      text-align: center;
+    }
+
+    .login-trigger {
+      padding: 15px 30px;
+      background: #1a1a1a;
+      border: 2px solid #00f7ff;
+      border-radius: 15px;
+      color: #00f7ff;
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .login-trigger:hover {
+      background: #00f7ff;
+      color: #1a1a1a;
+    }
+
+    @keyframes rotating {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Toast Styles */
+    .toast {
+      visibility: hidden;
+      min-width: 280px;
+      margin-left: -140px;
+      background-color: #ff4d4d;
+      color: white;
+      text-align: center;
+      border-radius: 12px;
+      padding: 12px 18px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 40px;
+      font-weight: bold;
+      font-size: 1em;
+      box-shadow: 0 0 10px #ff4d4d;
+    }
+
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 40px; opacity: 1;}
+    }
+
+    @keyframes fadeout {
+      from {bottom: 40px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="trigger-box">
+    <button class="login-trigger" onclick="document.querySelector('.box').style.display='block'; this.style.display='none';">🔊 LOGIN ❤️</button>
+  </div>
+
+  <div class="box">
+    <h3>Employee Login</h3>
+    <form method="POST">
+      <input type="text" name="company_code" placeholder="Company Code (optional)">
+      <input type="text" name="mobile" placeholder="Mobile" required>
+      <input type="password" name="password" placeholder="Password" id="password" required>
+      <button type="submit">Login</button>
+      <label><input type="checkbox" onclick="togglePassword()"> Show Password</label>
+    </form>
+  </div>
+
+  <div id="toast" class="toast">{{ error if error else 'Invalid mobile or password' }}</div>
+
+  <script>
+    function togglePassword() {
+      const pw = document.getElementById("password");
+      pw.type = pw.type === "password" ? "text" : "password";
+    }
+
+    {% if error %}
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      setTimeout(() => { toast.classList.remove("show"); }, 3000);
+    {% endif %}
+  </script>
+</body>
+</html>

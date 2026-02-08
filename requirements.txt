@@ -1,0 +1,6 @@
+Flask
+pandas
+openpyxl
+xhtml2pdf
+Flask-Session
+

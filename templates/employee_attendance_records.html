@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Employee Attendance</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--primary:#6366f1; --success:#10b981; --danger:#ef4444; --dark:#0f172a; --gradient:linear-gradient(135deg,#3730a3 0%,#312e81 100%);}
+    body{font-family:'Inter',sans-serif;background:var(--dark);color:#f1f5f9;min-height:100vh;}
+    .navbar{background:var(--gradient);padding:1rem 2rem;box-shadow:0 4px 12px rgba(0,0,0,.25);}
+    .navbar-brand{font-weight:700;font-size:1.2rem;color:#fff;text-decoration:none;}
+    .container{max-width:1400px;margin:2rem auto;padding:0 1rem;}
+    h1{text-align:center;font-weight:700;color:#60a5fa;margin-bottom:1rem;}
+
+    .live-header{
+      display:flex;justify-content:space-between;align-items:center;
+      background:rgba(255,255,255,.05);
+      padding:1rem 1.5rem;
+      border-radius:16px;
+      backdrop-filter:blur(6px);
+      box-shadow:0 0 20px rgba(0,0,0,.3);
+      margin-bottom:1.5rem;
+    }
+    .live-status{display:flex;align-items:center;gap:8px;}
+    .live-dot{width:12px;height:12px;border-radius:50%;background:#10b981;animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.7);}70%{box-shadow:0 0 0 10px rgba(16,185,129,0);}100%{box-shadow:0 0 0 0 rgba(16,185,129,0);}}
+
+    .action-bar{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-bottom:1.5rem;}
+    .action-bar button{border:none;border-radius:10px;padding:.6rem 1.2rem;color:#fff;font-weight:600;display:flex;align-items:center;gap:8px;}
+    .btn-excel{background:#22c55e;}.btn-pdf{background:#ef4444;}
+    .action-bar button:hover{filter:brightness(1.1);}
+
+    .table-container{background:rgba(255,255,255,.05);border-radius:16px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,.3);}
+    th{background:var(--gradient);color:#fff;text-transform:uppercase;font-size:.8rem;padding:1rem;text-align:center;}
+    td{padding:1rem;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);vertical-align:middle;}
+    tr:hover{background:rgba(99,102,241,.15);}
+
+    .emp-info{display:flex;align-items:center;gap:12px;justify-content:flex-start;}
+    .emp-photo{width:45px;height:45px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);}
+    .in-time{color:var(--success);font-weight:600;}.out-time{color:var(--danger);font-weight:600;}.work-hours{font-weight:600;color:#60a5fa;}
+    .att-photo{width:70px;height:70px;border-radius:10px;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;transition:transform .2s;}
+    .att-photo:hover{transform:scale(1.08);}
+    .btn-map{background:linear-gradient(135deg,#0dcaf0,#007bff);color:#fff!important;font-weight:600;border:none;border-radius:8px;padding:6px 12px;transition:.3s;box-shadow:0 0 8px rgba(13,202,240,.5);}
+    .btn-map:hover{filter:brightness(1.2);transform:scale(1.05);}
+    .action-icons a{margin:0 4px;text-decoration:none;font-size:1.2rem;transition:.2s;display:inline-block;}
+    .action-icons a:hover{transform:scale(1.2);}
+    .fa-envelope{color:#3b82f6;}.fa-whatsapp{color:#25d366;}.fa-telegram{color:#1da1f2;}.fa-file-pdf{color:#dc3545;}
+
+    #photoViewer,#mapViewer{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);}
+    #photoViewer img,#mapViewer iframe{max-width:90%;max-height:90%;border-radius:12px;box-shadow:0 0 30px rgba(0,0,0,.6);animation:fadeIn .3s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+
+    .status-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px;}
+    .status-green{background:#10b981;}.status-red{background:#ef4444;}
+
+    .placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#334155;color:#94a3b8;font-size:1.5rem;}
+
+    .autocomplete-wrapper{position:relative;display:inline-block;width:300px;}
+    .autocomplete-input{width:100%;padding:0.6rem 0.75rem;border-radius:10px;border:none;background:#1e293b;color:white;font-size:0.9rem;}
+    .autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#1e293b;border:1px solid #475569;border-top:none;border-radius:0 0 10px 10px;max-height:200px;overflow-y:auto;z-index:1000;display:none;margin:0;padding:0;}
+    .autocomplete-item{padding:0.5rem 0.75rem;cursor:pointer;transition:background 0.2s;}
+    .autocomplete-item:hover,.autocomplete-item.active{background:#475569;}
+    .autocomplete-item .highlight{background:#6366f1;color:white;padding:0 2px;border-radius:3px;}
+  </style>
+</head>
+<body>
+  <nav class="navbar d-flex justify-content-between align-items-center">
+    <a href="#" class="navbar-brand">Live Attendance</a>
+    <div class="d-flex align-items-center gap-4">
+      <div class="text-end">
+        <div id="todayDate"></div>
+        <div id="clock"></div>
+      </div>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-light btn-sm">Dashboard</a>
+      <a href="/admin_logout" class="btn btn-danger btn-sm">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Live Employee Attendance</h1>
+
+    <!-- Date Picker + Search -->
+    <div class="live-header">
+      <div class="live-status">
+        <div class="live-dot" {% if not is_live %}style="background:#94a3b8; animation:none;"{% endif %} id="liveIndicator"></div>
+        <div>
+          <strong>
+            {% if is_live %}Live Today{% else %}{{ selected_date }}{% endif %}
+          </strong><br>
+          <small class="text-muted">
+            {% if is_live %}Auto-refreshes every 30s{% else %}Historical View{% endif %}
+          </small>
+        </div>
+      </div>
+
+      <form method="GET" class="d-flex gap-2 align-items-center">
+        <input type="date" name="date" value="{{ selected_date }}" class="form-control" style="width:160px;">
+        <div class="autocomplete-wrapper">
+          <input type="text" name="search" class="autocomplete-input" placeholder="Search employee..." id="searchInput" value="{{ request.args.get('search','') }}">
+          <div id="autocompleteList" class="autocomplete-list"></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Go</button>
+      </form>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-bar">
+      <button class="btn-excel" onclick="exportTableToExcel('attendanceTable')">
+        <i class="fas fa-file-excel"></i> Export Excel
+      </button>
+      <button class="btn-pdf" onclick="exportTableToPDF()">
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+      <table class="table table-bordered mb-0" id="attendanceTable">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>In Time</th>
+            <th>Out Time</th>
+            <th>Working Hours</th>
+            <th>Photo</th>
+            <th>Map</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+          <tr data-emp-id="{{ r.id }}" data-phone="{{ r.mobile_clean }}">
+            <td>
+              <div class="emp-info">
+                <img src="{{ url_for('static', filename='uploads/' ~ r.emp_photo_clean) }}"
+                     class="emp-photo" alt="{{ r.employee_name }}"
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='default_user.png') }}';">
+                <div class="text-start">
+                  <div class="fw-semibold">{{ r.employee_name }}</div>
+                  <small class="text-muted">{{ r.mobile }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              {% if r.in_time_only != '—' %}
+                <span class="status-dot status-green"></span>
+                <span class="in-time">{{ r.in_time_only }}</span>
+              {% else %}
+                <span class="status-dot status-red"></span>
+                <span class="text-danger">No In</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.out_time_only != '—' %}
+                <span class="status-dot status-green"></span>
+                <span class="out-time">{{ r.out_time_only }}</span>
+              {% else %}
+                <span class="status-dot status-red"></span>
+                <span class="text-danger">No Out</span>
+              {% endif %}
+            </td>
+            <td><span class="work-hours">{{ r.work_hours }}</span></td>
+            <td>
+              {% if r.att_photo_clean != 'default_attendance.png' %}
+                <img src="{{ url_for('static', filename=r.att_photo_clean) }}"
+                     class="att-photo" onclick="openPhotoViewer(this.src)"
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='default_attendance.png') }}';">
+              {% else %}
+                <div class="placeholder att-photo"><i class="fas fa-image"></i></div>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.latitude and r.longitude %}
+                <button type="button" class="btn btn-map" onclick="openMapViewer('{{r.latitude}}','{{r.longitude}}')">Map</button>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="action-icons">
+              {% if r.id %}
+                <a href="{{ url_for('send_email_message_route', emp_id=r.id) }}" title="Email"><i class="fa-solid fa-envelope"></i></a>
+                <a href="https://wa.me/{{ r.mobile_clean }}?text={{ ('Hi ' ~ r.employee_name ~ '! Your attendance on ' ~ r.date_only ~ ': IN ' ~ r.in_time_only ~ ', OUT ' ~ r.out_time_only ~ ', Worked ' ~ r.work_hours ~ '. View: ' ~ r.full_map_url) | urlencode }}"
+                   target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                <a href="{{ url_for('send_telegram_message_route', emp_id=r.id) }}" title="Telegram"><i class="fab fa-telegram"></i></a>
+                <a href="#" onclick="shareCompleteReport({{ r.id }})" title="PDF Report"><i class="fas fa-file-pdf"></i></a>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center py-4 text-muted">No records for {{ selected_date }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Viewers -->
+  <div id="photoViewer" onclick="closeViewer('photoViewer')">
+    <img id="viewerImg" src="" alt="Attendance Photo">
+  </div>
+  <div id="mapViewer" onclick="closeViewer('mapViewer')">
+    <iframe id="mapFrame" width="600" height="450" style="border:0;" allowfullscreen loading="lazy"></iframe>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <script>
+    // Live Clock
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById('todayDate').textContent = now.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+      document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // Auto Refresh (only live)
+    {% if is_live %}
+    setInterval(() => {
+      const search = document.querySelector('input[name="search"]').value.trim();
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      window.location.search = params.toString();
+    }, 30000);
+    setInterval(() => {
+      const dot = document.getElementById('liveIndicator');
+      dot.style.opacity = dot.style.opacity === '0.4' ? '1' : '0.4';
+    }, 1000);
+    {% endif %}
+
+    // Viewers
+    function openPhotoViewer(src) { document.getElementById('viewerImg').src = src; document.getElementById('photoViewer').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    function openMapViewer(lat, lng) { document.getElementById('mapFrame').src = `https://www.google.com/maps?q=${lat},${lng}&output=embed`; document.getElementById('mapViewer').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    function closeViewer(id) { document.getElementById(id).style.display = 'none'; document.body.style.overflow = 'auto'; }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeViewer('photoViewer'); closeViewer('mapViewer'); } });
+
+    // Export
+    function exportTableToExcel(id) {
+      const wb = XLSX.utils.table_to_book(document.getElementById(id), { sheet: "Attendance" });
+      XLSX.writeFile(wb, `Attendance_{{ selected_date }}.xlsx`);
+    }
+    function exportTableToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'pt', 'a4');
+      doc.html(document.getElementById('attendanceTable'), { callback: pdf => pdf.save(`Attendance_{{ selected_date }}.pdf`), x: 20, y: 20, html2canvas: { scale: 2 } });
+    }
+
+    // Share
+    function shareCompleteReport(empId) {
+      if (!empId) return alert("Invalid employee");
+      const row = document.querySelector(`tr[data-emp-id="${empId}"]`);
+      const name = row.querySelector('.fw-semibold').textContent.trim();
+      const phone = row.dataset.phone;
+      const url = `/download_report_pdf/${empId}`;
+      window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(`Hi ${name}! Your report: ${window.location.origin}${url}`)}`, '_blank');
+      const a = Object.assign(document.createElement('a'), { href: url, download: `Report_${name}.pdf` });
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    // Autocomplete
+    const searchInput = document.getElementById('searchInput');
+    const list = document.getElementById('autocompleteList');
+    let items = [], active = -1;
+    async function fetchSuggestions(q) {
+      if (!q.trim()) return list.innerHTML = '', list.style.display = 'none', [];
+      const res = await fetch(`/api/search_employees?q=${encodeURIComponent(q)}`);
+      return await res.json();
+    }
+    function highlight(t, q) { return t.replace(new RegExp(`(${q})`, 'gi'), '<span class="highlight">$1</span>'); }
+    function render(suggestions, q) {
+      list.innerHTML = ''; items = [];
+      if (!suggestions.length) return list.style.display = 'none';
+      suggestions.forEach(emp => {
+        const div = document.createElement('div'); div.className = 'autocomplete-item';
+        div.innerHTML = `<div><strong>${highlight(emp.name, q)}</strong></div><div style="font-size:0.8rem;color:#94a3b8;">${highlight(emp.mobile, q)}</div>`;
+        div.onclick = () => { searchInput.value = `${emp.name} (${emp.mobile})`; list.style.display = 'none'; document.querySelector('form').submit(); };
+        list.appendChild(div); items.push(div);
+      });
+      list.style.display = 'block'; active = -1;
+    }
+    let timer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fetchSuggestions(searchInput.value.trim()).then(s => render(s, searchInput.value.trim())), 300);
+    });
+    document.addEventListener('click', e => { if (!searchInput.contains(e.target) && !list.contains(e.target)) list.style.display = 'none'; });
+    searchInput.addEventListener('keydown', e => {
+      if (!list.style.display || list.style.display === 'none') return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % items.length; updateActive(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); active = active <= 0 ? items.length - 1 : active - 1; updateActive(); }
+      else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); items[active].click(); }
+    });
+    function updateActive() { items.forEach((el, i) => el.classList.toggle('active', i === active)); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payroll Overview | 360 Vision</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background: #0b132b;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+    }
+    .page-header {
+      background: linear-gradient(90deg, #1c2541, #3a506b);
+      padding: 1.5rem 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .page-header h3 {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.8rem;
+      color: #00d4ff;
+    }
+    .page-header .btn {
+      border-radius: 30px;
+      font-weight: 500;
+      padding: 0.5rem 1.2rem;
+    }
+    .btn-dark {
+      background: #1c2541;
+      border: none;
+      color: #fff;
+      transition: 0.3s;
+    }
+    .btn-dark:hover {
+      background: #3a506b;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(58, 80, 107, 0.5);
+    }
+    .btn-outline-info {
+      border-color: #00d4ff;
+      color: #00d4ff;
+    }
+    .btn-outline-info:hover {
+      background: #00d4ff;
+      color: #0b132b;
+    }
+
+    /* Employee Cards */
+    .employee-card {
+      background: #1c2541;
+      border: none;
+      border-radius: 15px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .employee-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 25px rgba(0, 212, 255, 0.3);
+    }
+
+    .employee-photo {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      background: #0b132b;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    .employee-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .employee-photo i {
+      font-size: 4rem;
+      color: #3a506b;
+    }
+
+    .employee-card .card-body {
+      padding: 1rem;
+      text-align: center;
+    }
+    .employee-card h5 {
+      color: #00d4ff;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    .employee-card small {
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .btn-payroll {
+      background: #00d4ff;
+      border: none;
+      color: #0b132b;
+      border-radius: 25px;
+      padding: 0.5rem 1.2rem;
+      font-weight: 500;
+      margin-top: 1rem;
+      transition: 0.3s;
+    }
+    .btn-payroll:hover {
+      background: #009fc0;
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    }
+
+    /* Status pulse bar */
+    .status-bar {
+      height: 6px;
+      width: 100%;
+      border-radius: 0 0 10px 10px;
+      animation: pulse 2s infinite;
+    }
+    .status-working { background: #00ff99; box-shadow: 0 0 10px #00ff99; }
+    .status-resigned { background: #ff4b4b; box-shadow: 0 0 10px #ff4b4b; }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    /* Pagination */
+    .pagination .page-link {
+      background: #1c2541;
+      border: none;
+      color: #fff;
+      margin: 0 3px;
+      border-radius: 10px;
+    }
+    .pagination .page-item.active .page-link {
+      background: #00d4ff;
+      color: #0b132b;
+    }
+    .pagination .page-link:hover {
+      background: #3a506b;
+      color: #00d4ff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .page-header h3 {
+        font-size: 1.4rem;
+        text-align: center;
+      }
+      .btn {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container my-4">
+  <div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-dark">
+        <i class="bi bi-arrow-left-circle"></i> Back
+      </a>
+      <h3><i class="bi bi-people-fill"></i> Payroll Overview</h3>
+    </div>
+    {% if show_all %}
+      <a href="{{ url_for('payroll_index') }}" class="btn btn-outline-info">
+        <i class="bi bi-eye-slash"></i> Hide Resigned
+      </a>
+    {% else %}
+      <a href="{{ url_for('payroll_index', show='all') }}" class="btn btn-outline-info">
+        <i class="bi bi-eye"></i> Show Resigned
+      </a>
+    {% endif %}
+  </div>
+
+  {% if employees_to_display|length == 0 %}
+    <div class="alert alert-info text-center">
+      <i class="bi bi-info-circle"></i> No employees to show. Please check your filters.
+    </div>
+  {% endif %}
+
+  <div class="row">
+    {% for emp in employees_to_display %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+      <div class="employee-card">
+        <div class="employee-photo">
+          {% if emp['employee_photo'] %}
+            <img src="{{ url_for('static', filename='uploads/' + emp['employee_photo']) }}" alt="{{ emp['name'] }}">
+          {% else %}
+            <i class="bi bi-person-circle"></i>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <h5>{{ emp['name'] }}</h5>
+          <small>{{ emp['designation'] or 'N/A' }}</small>
+          <a href="{{ url_for('view_payroll', employee_id=emp['id']) }}" class="btn btn-payroll">
+            <i class="bi bi-file-earmark-text"></i> View Payroll
+          </a>
+        </div>
+        <div class="status-bar status-{{ 'working' if emp['status']|lower == 'working' else 'resigned' }}"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if total_pages > 1 %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('payroll_index', show='all' if show_all else None, page=page-1) }}">
+            « Prev
+          </a>
+        </li>
+      {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('payroll_index', show='all' if show_all else None, page=p) }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+      {% if page < total_pages %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('payroll_index', show='all' if show_all else None, page=page+1) }}">
+            Next »
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

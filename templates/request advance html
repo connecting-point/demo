@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Advance Salary Request</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 600px;
+      margin-top: 50px;
+    }
+    .card {
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .btn-primary {
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card p-4">
+    <h3 class="mb-3 text-center text-primary">Advance Salary Request Page</h3>
+    
+    <div class="mb-3">
+      <strong>Monthly Salary:</strong> ₹{{ monthly_salary }}
+    </div>
+
+    <form method="POST" action="{{ url_for('request_advance') }}">
+      <div class="mb-3">
+        <label for="amount" class="form-label">Advance Amount Requested (₹)</label>
+        <input type="number" class="form-control" id="amount" name="amount" min="1" required>
+      </div>
+      
+      <div class="mb-3">
+        <label for="reason" class="form-label">Reason for Request</label>
+        <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Type your reason..." required></textarea>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>

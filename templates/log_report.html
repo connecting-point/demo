@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Log Report | 360 Vision</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background:#0b132b; color:#fff; font-family:'Poppins',sans-serif; }
+    .card { background:#1c2541; border:none; border-radius:12px; box-shadow:0 0 25px rgba(0,0,0,0.4); }
+    .table-dark { color:#fff; background:#1c2541; }
+    .table-hover tbody tr:hover { background:#3a506b; }
+    .badge-login { background:#00d4ff; }
+    .badge-edit { background:#ffc107; color:#000; }
+    .badge-delete { background:#dc3545; }
+    .badge-create { background:#28a745; }
+    .badge-system { background:#6f42c1; }
+    .pulse { animation:pulse 1.8s infinite; }
+    @keyframes pulse { 0%{opacity:1;}50%{opacity:0.6;}100%{opacity:1;} }
+    .form-control, .form-select { background:#16213e; color:#fff; border:none; }
+    .form-control:focus { background:#16213e; box-shadow:0 0 0 0.2rem rgba(0,212,255,0.25); }
+    .btn-outline-info { border-color:#00d4ff; color:#00d4ff; }
+    .btn-outline-info:hover { background:#00d4ff; color:#0b132b; }
+    .collapse-td { cursor:pointer; }
+    .collapse-content { background:#0e1b3a; border-radius:8px; padding:8px; margin-top:5px; font-size:0.9em; color:#ccc; }
+  </style>
+</head>
+<body>
+
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h3 class="text-info fw-bold"><i class="bi bi-journal-text"></i> System Log Report</h3>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-dark rounded-pill">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <!-- 🔍 Filter Form -->
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-3">
+      <label class="form-label fw-semibold">From Date</label>
+      <input type="date" name="from_date" value="{{ from_date }}" class="form-control rounded-pill shadow-sm">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-semibold">To Date</label>
+      <input type="date" name="to_date" value="{{ to_date }}" class="form-control rounded-pill shadow-sm">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">Search (User, Action, IP)</label>
+      <input type="text" name="search" value="{{ search }}" placeholder="Type keyword..." class="form-control rounded-pill shadow-sm">
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-outline-info rounded-pill shadow-sm">
+        <i class="bi bi-funnel-fill"></i> Filter
+      </button>
+    </div>
+  </form>
+
+  <!-- 🧾 Log Table -->
+  <div class="card p-3">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle text-center">
+        <thead class="table-primary text-dark">
+          <tr>
+            <th>🕒 Timestamp</th>
+            <th>👤 User</th>
+            <th>🧩 Action</th>
+            <th>📝 Details</th>
+            <th>🌐 IP</th>
+            <th>💻 Device Info</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if logs|length == 0 %}
+          <tr><td colspan="6" class="text-muted">No logs found for selected criteria.</td></tr>
+          {% endif %}
+          {% for log in logs %}
+          <tr data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" class="collapse-td">
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.user or 'System' }}</td>
+            <td>
+              {% if 'Login' in log.action %}
+                <span class="badge badge-login">{{ log.action }}</span>
+              {% elif 'Created' in log.action %}
+                <span class="badge badge-create">{{ log.action }}</span>
+              {% elif 'Deleted' in log.action %}
+                <span class="badge badge-delete">{{ log.action }}</span>
+              {% elif 'Edited' in log.action %}
+                <span class="badge badge-edit">{{ log.action }}</span>
+              {% else %}
+                <span class="badge badge-system">{{ log.action }}</span>
+              {% endif %}
+            </td>
+            <td>{{ log.details }}</td>
+            <td>{{ log.ip_address }}</td>
+            <td><i class="bi bi-laptop"></i> Click to view</td>
+          </tr>
+          <tr class="collapse" id="collapse{{ loop.index }}">
+            <td colspan="6">
+              <div class="collapse-content">
+                {{ log.device_info or 'No device details available' }}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

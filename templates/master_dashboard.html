@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Admin Dashboard | 360 Vision</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg,#101820,#1f2933);
+      color:#f5f7fa;
+      font-family:'Poppins',sans-serif;
+    }
+    .page-wrap {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      color: #f5f7fa;
+    }
+    .card h4 { color:#00e6ff; }
+    .form-control, .form-select {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color:#fff;
+      border-radius: 10px;
+    }
+    .form-control:focus {
+      box-shadow: 0 0 8px rgba(0,230,255,0.6);
+      border-color: #00e6ff;
+    }
+    .btn-primary {
+      background-color:#00e6ff;
+      border:none;
+      color:#000;
+      font-weight:600;
+      border-radius:10px;
+      padding:10px 18px;
+      box-shadow:0 0 12px rgba(0,230,255,0.5);
+    }
+    .btn-primary:hover {
+      background-color:#00bcd4;
+      box-shadow:0 0 16px rgba(0,230,255,0.8);
+    }
+    .table {
+      color: #f5f7fa;
+    }
+    .table thead th {
+      color: #9fdfff;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .table tbody td {
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .badge-code {
+      background: rgba(0,230,255,0.15);
+      color:#00e6ff;
+      border:1px solid rgba(0,230,255,0.4);
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-weight:600;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h3>Master Admin Dashboard</h3>
+      <a href="{{ url_for('master_logout') }}" class="btn btn-sm btn-outline-light">Logout</a>
+    </div>
+    <div class="mb-3 text-light">
+      Master: <b>{{ master_email }}</b> · Total Companies: <b>{{ company_count }}</b>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-3">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category in ['danger','error'] else 'success' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="card p-4 mb-4">
+      <h4 class="mb-3">Create Company</h4>
+      <form method="POST" action="{{ url_for('create_company') }}">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Company Name (optional)</label>
+            <input type="text" name="company_name" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Company Email</label>
+            <input type="email" name="company_email" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Company Phone</label>
+            <input type="text" name="company_phone" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Company Address</label>
+            <input type="text" name="company_address" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Admin Name</label>
+            <input type="text" name="admin_name" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Admin Email *</label>
+            <input type="email" name="admin_email" class="form-control" required>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Telegram Chat IDs (comma separated)</label>
+            <input type="text" name="telegram_chat_ids" class="form-control" placeholder="e.g. 123456, 987654">
+          </div>
+        </div>
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary">Create Company</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card p-4">
+      <h4 class="mb-3">Companies</h4>
+      <div class="table-responsive">
+        <table class="table table-borderless align-middle">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Admin Email</th>
+              <th>Code</th>
+              <th>Created</th>
+              <th>Status</th>
+              <th>Telegram IDs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in companies %}
+              <tr>
+                <td>{{ c['company_name'] }}</td>
+                <td>{{ c['admin_email'] }}</td>
+                <td><span class="badge-code">{{ c['company_code'] }}</span></td>
+                <td>{{ c['created_at'] }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('toggle_company_status', company_id=c['id']) }}">
+                    {% if c['is_active'] %}
+                      <button class="btn btn-sm btn-success">Active</button>
+                    {% else %}
+                      <button class="btn btn-sm btn-secondary">Inactive</button>
+                    {% endif %}
+                  </form>
+                </td>
+                <td>
+                  <form method="POST" action="{{ url_for('update_company_telegram', company_id=c['id']) }}">
+                    <div class="d-flex gap-2">
+                      <input type="text" name="telegram_chat_ids" class="form-control form-control-sm"
+                             value="{{ c['telegram_chat_ids'] or '' }}" placeholder="Chat IDs">
+                      <button class="btn btn-sm btn-primary">Save</button>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6">No companies created yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

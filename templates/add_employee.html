@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Employee</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    body { background:#f8f9fa; font-family:system-ui, -apple-system, sans-serif; }
+    .s{background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:1.5rem}
+    .t{font-size:1.1rem;font-weight:600;color:#495057;margin-bottom:1rem;border-bottom:1px solid #dee2e6;padding-bottom:.5rem}
+    @media(max-width:576px){.col-md-6,.col-md-4{margin-bottom:.75rem}}
+
+    /* Header Bar */
+    .top-bar {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:1.5rem;
+      gap:0.75rem;
+    }
+    .btn-dashboard {
+      background:linear-gradient(135deg,#343a40,#212529);
+      color:#fff !important;
+      border:none;
+      border-radius:10px;
+      padding:0.55rem 1rem;
+      font-weight:600;
+      transition:0.3s;
+      box-shadow:0 3px 8px rgba(52,58,64,0.3);
+      text-decoration:none;
+    }
+    .btn-dashboard:hover {
+      transform:translateY(-1px);
+      box-shadow:0 5px 14px rgba(52,58,64,0.5);
+      color:#fff;
+    }
+    .logout-btn {
+      background:linear-gradient(135deg,#dc3545,#b02a37);
+      color:#fff;
+      border:none;
+      border-radius:25px;
+      padding:0.45rem 1rem;
+      font-weight:600;
+      font-size:0.9rem;
+      transition:0.3s;
+      box-shadow:0 3px 8px rgba(220,53,69,0.3);
+      text-decoration:none;
+    }
+    .logout-btn:hover {
+      transform:translateY(-1px);
+      box-shadow:0 5px 14px rgba(220,53,69,0.5);
+      color:#fff;
+    }
+    #clock {
+      font-weight:600;
+      font-size:1rem;
+      color:#198754;
+      letter-spacing:0.5px;
+    }
+    #officeMap { height: 280px; border-radius: 12px; border: 1px solid #dee2e6; }
+  </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4 mt-md-5">
+
+  <!-- Header -->
+  <div class="top-bar">
+    <h2 class="mb-0 text-primary">Add Employee</h2>
+    <div class="d-flex align-items-center gap-3">
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+      <span id="clock"></span>
+      <a href="/admin-logout" class="logout-btn">Logout</a>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="position-fixed top-0 end-0 p-3" style="z-index:9999">
+    <div id="toast" class="toast text-white border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center">
+          <i id="icon" class="me-2 fs-4"></i><span id="msg"></span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        {% raw %}
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const t=document.getElementById("toast");
+            const m=document.getElementById("msg");
+            const i=document.getElementById("icon");
+            m.innerText="{{ message }}";
+            t.className=t.className.replace(/bg-\w+/g,"")+" bg-{{ category }}";
+            const icons={success:"fa-circle-check",danger:"fa-circle-xmark",warning:"fa-triangle-exclamation"};
+            i.className=`me-2 fs-4 fa-solid ${icons["{{ category }}"]||"fa-info-circle"}`;
+            new bootstrap.Toast(t,{delay:5000}).show();
+            const sounds={success:"success.mp3",danger:"failure.mp3",warning:"warning.mp3"};
+            new Audio("{{ url_for('static', filename='') }}"+sounds["{{ category }}"]).play();
+          });
+        </script>
+        {% endraw %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Employee Form -->
+  <form method="POST" enctype="multipart/form-data" id="form">
+    <input type="hidden" name="username" id="username">
+
+    <!-- Personal -->
+    <div class="s"><div class="t">Personal Info</div><div class="row g-3">
+      <div class="col-md-6"><label class="form-label">Name *</label><input name="name" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">Email *</label><input name="email" type="email" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">Mobile (Login ID) *</label>
+        <input id="mobile" name="mobile" type="text" pattern="\d{10}" maxlength="10" class="form-control" placeholder="10 digits" required>
+        <small class="text-muted">Used as username</small>
+      </div>
+      <div class="col-md-6"><label class="form-label">Password *</label><input name="password" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">Aadhaar</label><input name="aadhaar" class="form-control"></div>
+      <div class="col-md-12"><label class="form-label">Address</label><textarea name="address" class="form-control" rows="2"></textarea></div>
+    </div></div>
+
+    <!-- Family -->
+    <div class="s"><div class="t">Family & Social</div><div class="row g-3">
+      <div class="col-md-6"><label class="form-label">Father's Mobile</label><input name="father_mobile" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">Wife/Mother Mobile</label><input name="wife_or_mother_mobile" class="form-control"></div>
+      <div class="col-md-12"><label class="form-label">Facebook Link</label><input name="facebook_profile" type="url" class="form-control"></div>
+    </div></div>
+
+    <!-- Job & Shift -->
+    <div class="s"><div class="t">Job & Shift</div><div class="row g-3">
+      <div class="col-md-4"><label class="form-label">Joining Date</label><input name="joining_date" type="date" class="form-control"></div>
+      <div class="col-md-4"><label class="form-label">Designation</label><input name="designation" class="form-control"></div>
+      <div class="col-md-4"><label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="Working">Working</option>
+          <option value="Resigned">Resigned</option>
+        </select>
+      </div>
+      <div class="col-md-6"><label class="form-label">Team *</label><input type="text" name="team" class="form-control" placeholder="e.g. Team A, Sales, Field" required></div>
+      <div class="col-md-6"><label class="form-label">Category</label>
+        <select name="employee_category" class="form-select" required>
+          <option value="" disabled selected>Select</option>
+          <option>Full-Time</option><option>Part-Time</option><option>Contract</option><option>Intern</option><option>Freelancer</option>
+        </select>
+      </div>
+      <div class="col-md-6"><label class="form-label">Punch Rules</label>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" name="no_out_punch" value="1" id="nop">
+          <label class="form-check-label text-danger fw-semibold" for="nop">No Out-Punch</label>
+          <small class="text-muted d-block">For field staff</small>
+        </div>
+      </div>
+      <div class="col-md-6"><label class="form-label">In Time</label><input name="in_time" type="time" value="09:00" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">Out Time</label><input name="out_time" type="time" value="18:00" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">₹/Hour</label><input name="per_hour_salary" type="number" step="0.01" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">Shift Hours</label><input name="shift_hours" type="number" value="8" class="form-control"></div>
+      <div class="col-md-12"><label class="form-label">Week Off</label><br>
+        {% for d in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="week_off_days" value="{{ d }}">
+            <label class="form-check-label">{{ d }}</label>
+          </div>
+        {% endfor %}
+      </div>
+    </div></div>
+
+    <!-- Office Location -->
+    <div class="s">
+      <div class="t">Office Location</div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Office Staff (Location Restricted)</label>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="office_staff" value="1" id="officeStaff">
+            <label class="form-check-label" for="officeStaff">Enable office location check</label>
+          </div>
+          <small class="text-muted d-block">If enabled, employee can punch only inside office location.</small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Vehicle Logbook</label>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="vehicle_log_enabled" value="1" id="vehicleLog">
+            <label class="form-check-label" for="vehicleLog">Enable vehicle log entry</label>
+          </div>
+          <small class="text-muted d-block">Shows vehicle log button in employee attendance page.</small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Role</label>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="manager_role" value="1" id="managerRole">
+            <label class="form-check-label" for="managerRole">Manager</label>
+          </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="shop_manager_role" value="1" id="shopManagerRole">
+            <label class="form-check-label" for="shopManagerRole">Shop Manager</label>
+          </div>
+          <small class="text-muted d-block">Managers can assign work. Managers can also view all records.</small>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Allowed Radius (meters)</label>
+          <input name="office_radius_m" type="number" value="200" class="form-control">
+        </div>
+      </div>
+
+      <div id="officeMapWrap" class="mt-3" style="display:none;">
+        <div class="mb-2 text-muted">Click on map to select office location.</div>
+        <div id="officeMap"></div>
+        <div class="row g-3 mt-2">
+          <div class="col-md-6">
+            <label class="form-label">Office Latitude</label>
+            <input name="office_lat" id="office_lat" class="form-control" readonly disabled>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Office Longitude</label>
+            <input name="office_lon" id="office_lon" class="form-control" readonly disabled>
+          </div>
+        </div>
+      </div>
+
+      <div id="officeManualWrap" class="row g-3 mt-2">
+        <div class="col-md-6">
+          <label class="form-label">Office Latitude</label>
+          <input name="office_lat" id="office_lat_manual" class="form-control" placeholder="e.g. 12.9716">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Office Longitude</label>
+          <input name="office_lon" id="office_lon_manual" class="form-control" placeholder="e.g. 77.5946">
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="s"><div class="t">Documents</div><div class="row g-3">
+      <div class="col-md-6"><label class="form-label">Photo</label><input name="employee_photo" type="file" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">Aadhaar</label><input name="aadhaar_photo" type="file" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">PAN</label><input name="pan_card" type="file" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">Bank</label><input name="bank_passbook" type="file" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">10th</label><input name="tenth_certificate" type="file" class="form-control"></div>
+      <div class="col-md-6"><label class="form-label">Other</label><input name="other_certificate" type="file" class="form-control"></div>
+    </div></div>
+
+    <div class="text-center mt-4">
+      <button id="btn" type="submit" class="btn btn-success btn-lg px-5">
+        <span id="txt">Submit</span>
+        <span id="spin" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Bootstrap + Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+<script>
+  const mobile=document.getElementById('mobile'),username=document.getElementById('username');
+  mobile.addEventListener('input',()=>username.value=mobile.value.replace(/\D/g,'').slice(0,10));
+
+  document.getElementById('form').onsubmit=()=>{
+    const txt=document.getElementById('txt'),spin=document.getElementById('spin');
+    txt.textContent='Saving...';spin.classList.remove('d-none');
+    document.getElementById('btn').disabled=true;
+  };
+
+  // Live Clock
+  function updateClock(){
+    const now=new Date();
+    document.getElementById("clock").textContent="🕒 "+now.toLocaleTimeString();
+  }
+  setInterval(updateClock,1000);
+  updateClock();
+
+  // Office location toggle + map
+  const officeStaff = document.getElementById("officeStaff");
+  const officeMapWrap = document.getElementById("officeMapWrap");
+  const officeManualWrap = document.getElementById("officeManualWrap");
+  let officeMap = null;
+  let officeMarker = null;
+
+  function initOfficeMap() {
+    if (officeMap) return;
+    officeMap = L.map("officeMap").setView([12.9716, 77.5946], 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(officeMap);
+    officeMap.on("click", (e) => {
+      const { lat, lng } = e.latlng;
+      if (!officeMarker) {
+        officeMarker = L.marker([lat, lng]).addTo(officeMap);
+      } else {
+        officeMarker.setLatLng([lat, lng]);
+      }
+      document.getElementById("office_lat").value = lat.toFixed(6);
+      document.getElementById("office_lon").value = lng.toFixed(6);
+    });
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        officeMap.setView([pos.coords.latitude, pos.coords.longitude], 15);
+      });
+    }
+  }
+
+  function toggleOfficeMode() {
+    if (officeStaff.checked) {
+      officeMapWrap.style.display = "block";
+      officeManualWrap.style.display = "none";
+      document.getElementById("office_lat").disabled = false;
+      document.getElementById("office_lon").disabled = false;
+      document.getElementById("office_lat_manual").disabled = true;
+      document.getElementById("office_lon_manual").disabled = true;
+      initOfficeMap();
+    } else {
+      officeMapWrap.style.display = "none";
+      officeManualWrap.style.display = "flex";
+      document.getElementById("office_lat").disabled = true;
+      document.getElementById("office_lon").disabled = true;
+      document.getElementById("office_lat_manual").disabled = false;
+      document.getElementById("office_lon_manual").disabled = false;
+    }
+  }
+  officeStaff.addEventListener("change", toggleOfficeMode);
+  toggleOfficeMode();
+</script>
+</body>
+</html>

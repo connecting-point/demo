@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenv
+venv/
+.env
+
+# Databases (DO NOT push business data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Sessions / logs / runtime
+flask_session/
+logs/
+*.log
+nohup.out
+
+# Uploads / photos
+uploads/
+attendance_photos/
+static/uploads/
+static/attendance_photos/
+photos/
+
+# Builds / packages
+*.aab
+*.apk
+
+# Docker runtime noise
+*.pid
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Your Windows path artifacts if any
+Z:*/
+# Flutter / Android build outputs
+attendance_mobile/build/
+attendance_mobile/.dart_tool/
+attendance_mobile/.flutter-plugins
+attendance_mobile/.flutter-plugins-dependencies
+attendance_mobile/.pub-cache/
+attendance_mobile/android/.gradle/
+attendance_mobile/android/app/build/
+attendance_mobile/android/build/
+attendance_mobile/ios/Pods/
+attendance_mobile/ios/.symlinks/
+attendance_mobile/ios/Flutter/Flutter.framework
+attendance_mobile/ios/Flutter/Flutter.podspec
+attendance_mobile/ios/Flutter/App.framework

@@ -1,0 +1,16 @@
+docker stop employee_attendance
+docker rm employee_attendance
+
+sudo docker run -d --restart=always -p 5050:5050 \
+  --name employee_attendance \
+  -v /media/data/employee_db/employees.db:/app/employees.db \
+  -v /media/data/employee_db/static/uploads:/app/static/uploads \
+  -v /media/data/employee_db/static/attendance_photos:/app/static/attendance_photos \
+  employee_attendance
+
+
+
+
+cd /media/data/employee_db
+sudo docker build -t employee_attendance .
+

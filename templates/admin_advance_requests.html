@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Advance Salary Requests</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f7f7f7; }
+    .container { margin-top: 40px; }
+    .card { border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
+    .table th, .table td { vertical-align: middle; }
+    .filter-form .form-control, .filter-form .form-select { max-width: 200px; }
+    .nav-tabs .nav-link.active { background-color: #0d6efd; color: white; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary mb-3">
+    &larr; Back to Admin Dashboard
+  </a>
+
+  <h3 class="text-center text-primary mb-4">Admin - Advance Salary Requests</h3>
+
+  <!-- Filters -->
+  <form method="GET" class="row g-3 justify-content-center mb-4">
+    <div class="col-md-auto">
+      <select name="employee_id" class="form-select">
+        <option value="">-- All Employees --</option>
+        {% for e in employees %}
+          <option value="{{ e['id'] }}" {% if selected_employee_id == e['id'] %}selected{% endif %}>
+            {{ e['name'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-auto">
+      <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
+    </div>
+    <div class="col-md-auto">
+      <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
+    </div>
+    <div class="col-md-auto">
+      <button type="submit" class="btn btn-primary">Filter</button>
+    </div>
+  </form>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs justify-content-center mb-3" id="statusTabs">
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == '' %}active{% endif %}" href="?{% if selected_employee_id %}employee_id={{ selected_employee_id }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}&{% endif %}">All</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == 'Pending' %}active{% endif %}" href="?status=Pending{% if selected_employee_id %}&employee_id={{ selected_employee_id }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Pending</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == 'Approved' %}active{% endif %}" href="?status=Approved{% if selected_employee_id %}&employee_id={{ selected_employee_id }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Approved</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == 'Rejected' %}active{% endif %}" href="?status=Rejected{% if selected_employee_id %}&employee_id={{ selected_employee_id }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Rejected</a>
+    </li>
+  </ul>
+
+  <!-- Table -->
+  <div class="card p-3">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in requests %}
+          <tr>
+            <td>{{ r['name'] }}</td>
+            <td>{{ r['request_date'] }}</td>
+            <td>₹{{ r['amount'] }}</td>
+            <td>{{ r['reason'] }}</td>
+            <td>
+              {% if r['status'] == 'Pending' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% elif r['status'] == 'Approved' %}
+                <span class="badge bg-success">Approved</span>
+              {% else %}
+                <span class="badge bg-danger">Rejected</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r['status'] == 'Pending' %}
+              <form method="POST" action="{{ url_for('update_advance_request', id=r['id']) }}">
+                <select name="status" class="form-select mb-2">
+                  <option value="Approved">Approve</option>
+                  <option value="Rejected">Reject</option>
+                </select>
+                <input type="text" name="admin_comment" class="form-control mb-2" placeholder="Comment (optional)">
+                <button type="submit" class="btn btn-sm btn-primary w-100">Update</button>
+              </form>
+              {% else %}
+                {{ r['admin_comment'] or '-' }}
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6">No requests found for this filter.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

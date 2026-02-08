@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Attendance</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .card {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px #000;
+            width: 90%;
+            max-width: 400px;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        input[type="file"] {
+            padding: 3px;
+        }
+        button {
+            background-color: #00bfff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Employee Attendance</h2>
+        <form id="attendanceForm" enctype="multipart/form-data">
+            <input type="text" name="code" placeholder="Employee Code" required>
+            <textarea name="note" placeholder="Optional Note..."></textarea>
+            <input type="file" name="photo" accept="image/*" capture="environment" required>
+            <input type="hidden" name="type" id="typeField">
+            <input type="hidden" name="lat" id="lat">
+            <input type="hidden" name="lon" id="lon">
+            <button type="button" onclick="submitForm('in')">Punch In</button>
+            <button type="button" onclick="submitForm('out')">Punch Out</button>
+        </form>
+    </div>
+    <script>
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            document.getElementById("lat").value = pos.coords.latitude;
+            document.getElementById("lon").value = pos.coords.longitude;
+        });
+
+        function submitForm(type) {
+            document.getElementById("typeField").value = type;
+            const form = document.getElementById("attendanceForm");
+            const formData = new FormData(form);
+
+            fetch("/attendance", {
+                method: "POST",
+                body: formData
+            }).then(res => {
+                if (res.ok) alert("Attendance marked!");
+                else alert("Error submitting attendance");
+            });
+        }
+    </script>
+</body>
+</html>

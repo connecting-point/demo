@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .filter-card { background: #f8f9fa; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .filter-title { font-weight: 600; color: #495057; margin-bottom: 0.5rem; }
+        .form-control, .form-select { border-radius: 8px; }
+        .btn-filter { border-radius: 8px; font-weight: 500; }
+        .table-actions .btn { font-size: 0.85rem; padding: 0.35rem 0.75rem; }
+        .badge-team { font-size: 0.75rem; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-users"></i> Employee List</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filters & Search -->
+    <form method="GET" class="filter-card mb-4">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="filter-title"><i class="fas fa-search"></i> Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Name, Mobile, Email..." 
+                       value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-3">
+                <label class="filter-title"><i class="fas fa-tags"></i> Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    <option value="Full-Time" {% if request.args.get('category') == 'Full-Time' %}selected{% endif %}>Full-Time</option>
+                    <option value="Part-Time" {% if request.args.get('category') == 'Part-Time' %}selected{% endif %}>Part-Time</option>
+                    <option value="Contract" {% if request.args.get('category') == 'Contract' %}selected{% endif %}>Contract</option>
+                    <option value="Intern" {% if request.args.get('category') == 'Intern' %}selected{% endif %}>Intern</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="filter-title"><i class="fas fa-users-cog"></i> Team</label>
+                <select name="team" class="form-select">
+                    <option value="">All Teams</option>
+                    {% set teams = employees | map(attribute='team') | unique | list %}
+                    {% for team in teams %}
+                        {% if team %}
+                            <option value="{{ team }}" {% if request.args.get('team') == team %}selected{% endif %}>{{ team }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-filter w-100">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Employee Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Email</th>
+                            <th>Designation</th>
+                            <th>Category</th>
+                            <th>Team</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if employees %}
+                            {% for emp in employees %}
+                            <tr>
+                                <td>{{ emp.id }}</td>
+                                <td class="fw-semibold">{{ emp.name | title }}</td>
+                                <td><a href="tel:{{ emp.mobile }}">{{ emp.mobile }}</a></td>
+                                <td><a href="mailto:{{ emp.email }}">{{ emp.email }}</a></td>
+                                <td>{{ emp.designation or '—' }}</td>
+                                <td>
+                                    <span class="badge bg-info text-dark">{{ emp.employee_category or '—' }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success badge-team">{{ emp.team or '—' }}</span>
+                                </td>
+                                <td>
+                                    {% if emp.status == 'Working' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ emp.status or '—' }}</span>
+                                    {% endif %}
+                                </td>
+                          <td class="text-center table-actions">
+  <a href="{{ url_for('employee_view', id=emp.id) }}" 
+     class="btn btn-sm btn-outline-primary" title="View Profile">
+     <i class="fas fa-eye"></i>
+  </a>
+
+  <a href="{{ url_for('edit_employee', id=emp.id) }}" 
+     class="btn btn-sm btn-outline-warning" title="Edit">
+     <i class="fas fa-edit"></i>
+  </a>
+
+  <a href="{{ url_for('delete_employee', id=emp.id) }}" 
+     class="btn btn-sm btn-outline-danger" 
+     onclick="return confirm('Delete {{ emp.name }}? This cannot be undone.')"
+     title="Delete">
+     <i class="fas fa-trash"></i>
+  </a>
+</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                    No employees found.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

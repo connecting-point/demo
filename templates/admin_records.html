@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Employee Attendance</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f7fa;
+      color: #1a1a1a;
+    }
+    .container {
+      padding: 1.5rem 1.5rem 2rem;
+      max-width: 720px;
+      margin: 1rem auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    header h2 {
+      font-size: 1.6rem;
+      text-align: center;
+      color: #2d3748;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .logout-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .user-photo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 3px solid #e0e6ed;
+      object-fit: cover;
+    }
+    .logout-section button {
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(229, 62, 62, 0.5);
+    }
+    .logout-section button:hover {
+      box-shadow: 0 5px 15px rgba(197, 48, 48, 0.7);
+    }
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .nav-links a {
+      flex: 1 1 calc(33% - 1rem);
+      text-align: center;
+      padding: 0.8rem 1rem;
+      background: #edf2f7;
+      color: #357abd;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .nav-links a:hover { background: #bee3f8; color: #1f4e8a; }
+    .nav-links a span {
+      background: #e53e3e;
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      margin-left: 5px;
+      font-weight: 700;
+    }
+
+    #gpsStatus {
+      text-align: center;
+      font-weight: 700;
+      color: orange;
+      margin-top: 0.5rem;
+    }
+    video {
+      width: 100%;
+      border-radius: 12px;
+      background: #000;
+      aspect-ratio: 4/3;
+      margin-top: 0.75rem;
+    }
+    .photo-preview {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+    .photo-preview div {
+      position: relative;
+      max-width: 110px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .photo-preview span {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #e53e3e;
+      color: #fff;
+      border-radius: 50%;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button, input[type="text"] {
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 1rem;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e0;
+      background: #f8fafc;
+      font-weight: 600;
+      color: #2d3748;
+      transition: 0.3s;
+    }
+    button {
+      background: linear-gradient(135deg, #4a90e2, #357abd);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4);
+    }
+    button:hover { box-shadow: 0 6px 14px rgba(74, 144, 226, 0.6); }
+    button:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    #msg {
+      text-align: center;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    #successBox {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #38a169;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+      font-weight: 600;
+      animation: slideUp 0.5s ease-in;
+      z-index: 999;
+    }
+    @keyframes slideUp {
+      from { bottom: -100px; opacity: 0; }
+      to { bottom: 0; opacity: 1; }
+    }
+
+    @media (max-width: 620px) {
+      .nav-links a { flex: 1 1 100%; }
+      .logout-section { flex-direction: column; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logout-section">
+      <img src="{{ url_for('static', filename='uploads/' + (user_photo or 'default_user.png')) }}" alt="Profile" class="user-photo" />
+      <button onclick="confirmLogout()">Logout</button>
+    </div>
+
+    <nav class="nav-links">
+      <a href="/records">📋 View Records</a>
+      <a href="/my_expenses">
+        💰 My Expenses
+        {% if pending_count and pending_count > 0 %}
+          <span>{{ pending_count }}</span>
+        {% endif %}
+      </a>
+      <a href="/request_advance">🧾 Request Advance</a>
+    </nav>
+
+    <header>
+      <h2>Welcome, {{ username }}</h2>
+    </header>
+
+    <div id="punchStatusBox" style="text-align:center;margin:1rem 0;">
+      <h3 style="color:{{ status_color }};">{{ status_message }}</h3>
+      <input type="hidden" id="action" value="{{ next_action }}">
+    </div>
+
+    <p id="currentTime">Time: --:--</p>
+    <p id="location">Location: Detecting...</p>
+    <p id="gpsStatus"></p>
+
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <input type="text" id="subject" placeholder="Enter subject (optional)" />
+    <button onclick="captureFromCamera()">📸 Capture Photo</button>
+
+    <div class="photo-preview" id="photoPreview"></div>
+    <button id="submitBtn" onclick="submitAttendance()">✅ Punch {{ next_action|capitalize }}</button>
+    <p id="msg"></p>
+  </div>
+
+  <div id="successBox"></div>
+
+  <audio id="successSound" src="{{ url_for('static', filename='sounds/success.mp3') }}"></audio>
+  <audio id="failGpsSound" src="{{ url_for('static', filename='sounds/failgps.mp3') }}"></audio>
+  <audio id="failSubmitSound" src="{{ url_for('static', filename='sounds/failure.mp3') }}"></audio>
+
+  <script>
+    let photoDataList = [], locationData = {}, gpsFetched = false;
+
+    function updateClock() {
+      document.getElementById('currentTime').innerText = `Time: ${new Date().toLocaleTimeString()}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    function fetchLocation(retry = 0) {
+      const gpsStatus = document.getElementById("gpsStatus");
+      const locEl = document.getElementById("location");
+      gpsStatus.innerText = "⏳ Fetching GPS...";
+      gpsStatus.style.color = "orange";
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          locationData.latitude = pos.coords.latitude;
+          locationData.longitude = pos.coords.longitude;
+          gpsFetched = true;
+          gpsStatus.innerText = "✅ GPS detected";
+          gpsStatus.style.color = "green";
+          locEl.innerText = `Location: Lat ${pos.coords.latitude.toFixed(5)}, Lon ${pos.coords.longitude.toFixed(5)}`;
+        },
+        () => {
+          gpsFetched = false;
+          gpsStatus.innerText = "❌ GPS not detected.";
+          gpsStatus.style.color = "red";
+          if (retry < 5) setTimeout(() => fetchLocation(retry + 1), 3000);
+          else document.getElementById("failGpsSound").play();
+        },
+        { enableHighAccuracy: true, timeout: 6000 }
+      );
+    }
+    fetchLocation();
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => document.getElementById("video").srcObject = stream)
+      .catch(() => {
+        showMsg("⚠️ Camera access denied.", "red");
+      });
+
+    function captureFromCamera() {
+      if (!gpsFetched) {
+        showMsg("⚠️ Wait for GPS before capturing.", "orange");
+        playSound("failGpsSound");
+        return;
+      }
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const img = canvas.toDataURL("image/jpeg", 0.85);
+      photoDataList.push(img);
+      const preview = document.getElementById("photoPreview");
+      const div = document.createElement("div");
+      div.innerHTML = `<img src="${img}" alt="photo"><span onclick="removePhoto(this)">×</span>`;
+      preview.appendChild(div);
+    }
+
+    function removePhoto(el) {
+      const idx = Array.from(el.parentElement.parentElement.children).indexOf(el.parentElement);
+      photoDataList.splice(idx, 1);
+      el.parentElement.remove();
+    }
+
+    function submitAttendance() {
+      const btn = document.getElementById("submitBtn");
+      const msg = document.getElementById("msg");
+      const action = document.getElementById("action").value;
+      const subject = document.getElementById("subject").value || "";
+      if (!gpsFetched) { showMsg("⚠️ GPS not detected.", "red"); playSound("failGpsSound"); return; }
+      if (photoDataList.length === 0) { showMsg("⚠️ Capture at least one photo.", "red"); playSound("failSubmitSound"); return; }
+
+      btn.disabled = true; btn.innerText = "Submitting...";
+      fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, photos: photoDataList, location: locationData, subject })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.status === "success") {
+          showMsg(d.message, "green");
+          playSound("successSound");
+          showSuccessBox();
+        } else {
+          showMsg(d.message || "Submission failed.", "red");
+          playSound("failSubmitSound");
+          btn.disabled = false; btn.innerText = "✅ Punch " + action.charAt(0).toUpperCase() + action.slice(1);
+        }
+      })
+      .catch(() => {
+        showMsg("⚠️ Network error.", "red");
+        playSound("failSubmitSound");
+        btn.disabled = false; btn.innerText = "✅ Punch " + action.charAt(0).toUpperCase() + action.slice(1);
+      });
+    }
+
+    function showSuccessBox() {
+      const box = document.getElementById("successBox");
+      box.style.display = "block";
+      let t = 5;
+      const i = setInterval(() => {
+        box.innerText = `✅ Attendance submitted. Logging out in ${t--}s...`;
+        if (t < 0) { clearInterval(i); window.location.href = "/logout"; }
+      }, 1000);
+    }
+
+    function showMsg(text, color) {
+      const el = document.getElementById("msg");
+      el.innerText = text; el.style.color = color;
+    }
+
+    function playSound(id) {
+      const el = document.getElementById(id);
+      if (el) el.play().catch(()=>{});
+    }
+
+    function confirmLogout() {
+      if (confirm("Logout now?")) window.location.href = "/logout";
+    }
+  </script>
+</body>
+</html>
+

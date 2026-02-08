@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Attendance Records</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #222;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #333;
+      text-align: left;
+    }
+    img {
+      max-width: 100px;
+    }
+    @media(max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      th {
+        display: none;
+      }
+      td {
+        margin-bottom: 10px;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Employee Attendance Records</h2>
+  <table id="attendanceTable">
+    <thead>
+      <tr>
+        <th>Employee Code</th>
+        <th>Type</th>
+        <th>Photo</th>
+        <th>Location</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    fetch('/records')
+      .then(res => res.json())
+      .then(data => {
+        const tableBody = document.querySelector("#attendanceTable tbody");
+        data.forEach(record => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${record.employee_code}</td>
+            <td>${record.type}</td>
+            <td><img src="/photos/${record.photo_path}" alt="photo"></td>
+            <td>${record.latitude}, ${record.longitude}</td>
+            <td>${record.timestamp}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      });
+  </script>
+</body>
+</html>
