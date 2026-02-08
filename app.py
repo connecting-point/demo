@@ -136,6 +136,7 @@ def get_db_connection(db_path=None):
         ensure_employee_location_columns(conn)
         ensure_vehicle_logbook_table(conn)
         ensure_work_tables(conn)
+        ensure_live_location_table(conn)
         ENSURED_EMP_SCHEMA.add(path)
     return conn
 
@@ -213,6 +214,28 @@ def ensure_work_tables(conn):
         conn.commit()
     except Exception as e:
         print("⚠️ ensure_work_tables failed:", e)
+
+def ensure_live_location_table(conn):
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS live_locations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                employee_id INTEGER NOT NULL,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                accuracy REAL,
+                timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (employee_id) REFERENCES employees(id)
+            )
+        """)
+        # Create index for faster queries
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_live_locations_employee 
+            ON live_locations(employee_id, timestamp DESC)
+        """)
+        conn.commit()
+    except Exception as e:
+        print("⚠️ ensure_live_location_table failed:", e)
 
 def haversine_meters(lat1, lon1, lat2, lon2):
     from math import radians, sin, cos, sqrt, atan2
@@ -2966,6 +2989,155 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+@app.route('/profile')
+def view_profile():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    username = session['username']
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    cur.execute("SELECT * FROM employees WHERE mobile = ?", (username,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return "Employee not found", 404
+    
+    employee = dict(row)
+    conn.close()
+    
+    return render_template('profile.html', employee=employee)
+
+@app.route('/live_track')
+def live_track():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    username = session['username']
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    # Check if user is manager
+    cur.execute("SELECT manager_role FROM employees WHERE mobile = ?", (username,))
+    row = cur.fetchone()
+    if not row or not row['manager_role']:
+        conn.close()
+        return "Access denied. Manager access required.", 403
+    
+    # Get all employees
+    cur.execute("SELECT id, name, mobile, employee_photo FROM employees ORDER BY name")
+    employees = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    
+    return render_template('live_track.html', employees=employees)
+
+@app.route('/api/employee_location/<int:employee_id>')
+def get_employee_location(employee_id):
+    if 'username' not in session:
+        return jsonify({'status': 'error', 'message': 'Not authenticated'}), 401
+    
+    username = session['username']
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    # Check if user is manager
+    cur.execute("SELECT manager_role FROM employees WHERE mobile = ?", (username,))
+    row = cur.fetchone()
+    if not row or not row['manager_role']:
+        conn.close()
+        return jsonify({'status': 'error', 'message': 'Access denied'}), 403
+    
+    # Get latest live location for this employee
+    cur.execute("""
+        SELECT latitude, longitude, accuracy, timestamp
+        FROM live_locations
+        WHERE employee_id = ?
+        ORDER BY timestamp DESC
+        LIMIT 1
+    """, (employee_id,))
+    
+    location = cur.fetchone()
+    
+    # Also get employee details
+    cur.execute("SELECT name, mobile FROM employees WHERE id = ?", (employee_id,))
+    employee = cur.fetchone()
+    
+    conn.close()
+    
+    if location and employee:
+        return jsonify({
+            'status': 'success',
+            'employee': {
+                'name': employee['name'],
+                'mobile': employee['mobile']
+            },
+            'location': {
+                'latitude': location['latitude'],
+                'longitude': location['longitude'],
+                'accuracy': location['accuracy'],
+                'timestamp': location['timestamp']
+            }
+        })
+    else:
+        return jsonify({
+            'status': 'error',
+            'message': 'No location data available for this employee'
+        })
+
+@app.route('/api/update_live_location', methods=['POST'])
+def update_live_location():
+    if 'username' not in session:
+        return jsonify({'status': 'error', 'message': 'Not authenticated'}), 401
+    
+    username = session['username']
+    data = request.get_json()
+    
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    accuracy = data.get('accuracy')
+    
+    if not latitude or not longitude:
+        return jsonify({'status': 'error', 'message': 'Missing location data'}), 400
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # Get employee ID
+    cur.execute("SELECT id FROM employees WHERE mobile = ?", (username,))
+    emp = cur.fetchone()
+    if not emp:
+        conn.close()
+        return jsonify({'status': 'error', 'message': 'Employee not found'}), 404
+    
+    employee_id = emp['id']
+    
+    # Insert new location
+    cur.execute("""
+        INSERT INTO live_locations (employee_id, latitude, longitude, accuracy)
+        VALUES (?, ?, ?, ?)
+    """, (employee_id, latitude, longitude, accuracy))
+    
+    # Keep only last 100 locations per employee to avoid table bloat
+    cur.execute("""
+        DELETE FROM live_locations
+        WHERE employee_id = ?
+        AND id NOT IN (
+            SELECT id FROM live_locations
+            WHERE employee_id = ?
+            ORDER BY timestamp DESC
+            LIMIT 100
+        )
+    """, (employee_id, employee_id))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'status': 'success', 'message': 'Location updated'})
 
 # =======================================================
 # Save Attendance - Auto toggle IN / OUT per employee/day

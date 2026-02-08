@@ -39,9 +39,15 @@ dependencies:
   dio_cookie_manager: ^3.1.1
   geolocator: ^13.0.2
   image_picker: ^1.1.2
+  camera: ^0.11.0+2
   shared_preferences: ^2.3.2
   permission_handler: ^11.3.1
   url_launcher: ^6.3.1
+  audioplayers: ^6.1.0
+  image_cropper: ^8.0.2
+  qr_flutter: ^4.1.0
+  path_provider: ^2.1.5
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +76,9 @@ flutter:
   assets:
     - assets/app_icon.png
     - assets/images/background.png
+    - assets/sounds/success.mp3
+    - assets/sounds/failure.mp3
+    - assets/sounds/failgps.mp3
 
 flutter_icons:
   android: true

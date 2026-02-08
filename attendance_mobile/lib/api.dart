@@ -11,6 +11,8 @@ class Session {
   int? id;
   String? name;
   String? mobile;
+  String? companyName;
+  String? profilePhoto;
   bool vehicleLog = false;
   bool manager = false;
   bool shopManager = false;
@@ -32,11 +34,13 @@ class ApiClient {
   }
 
   static Dio _buildDio() {
-    final dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
-    ));
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
     final jar = CookieJar();
     dio.interceptors.add(CookieManager(jar));
     return dio;
@@ -62,6 +66,8 @@ class ApiClient {
     session.id = emp['id'];
     session.name = emp['name'];
     session.mobile = emp['mobile'];
+    session.companyName = emp['company_name'];
+    session.profilePhoto = emp['profile_photo'];
     session.vehicleLog = emp['vehicle_log_enabled'] == true;
     session.manager = emp['manager_role'] == true;
     session.shopManager = emp['shop_manager_role'] == true;
@@ -119,11 +125,10 @@ class ApiClient {
     required double lat,
     required double lon,
   }) async {
-    final res = await _dio.post('/api/work/checkin', data: {
-      'work_id': workId,
-      'lat': lat,
-      'lon': lon,
-    });
+    final res = await _dio.post(
+      '/api/work/checkin',
+      data: {'work_id': workId, 'lat': lat, 'lon': lon},
+    );
     if (res.data['status'] != 'ok') {
       throw Exception(res.data['message'] ?? 'Check-in failed');
     }
@@ -135,12 +140,14 @@ class ApiClient {
     required double lon,
     required Uint8List photoBytes,
     String? amount,
+    String? paymentMethod,
   }) async {
     final form = FormData.fromMap({
       'work_id': workId,
       'lat': lat,
       'lon': lon,
       'amount': amount ?? '',
+      'payment_method': paymentMethod ?? 'cash',
       'photo': MultipartFile.fromBytes(photoBytes, filename: 'checkout.jpg'),
     });
     final res = await _dio.post('/api/work/checkout', data: form);
@@ -226,12 +233,40 @@ class ApiClient {
     required String amount,
     required String reason,
   }) async {
-    final res = await _dio.post('/api/advance', data: {
-      'amount': amount,
-      'reason': reason,
-    });
+    final res = await _dio.post(
+      '/api/advance',
+      data: {'amount': amount, 'reason': reason},
+    );
     if (res.data['status'] != 'ok') {
       throw Exception(res.data['message'] ?? 'Advance request failed');
+    }
+  }
+
+  Future<void> uploadProfilePhoto(Uint8List photoBytes) async {
+    final formData = FormData.fromMap({
+      'photo': MultipartFile.fromBytes(photoBytes, filename: 'profile.jpg'),
+    });
+    final res = await _dio.post('/api/upload-profile-photo', data: formData);
+    if (res.data['status'] != 'ok') {
+      throw Exception(res.data['message'] ?? 'Photo upload failed');
+    }
+  }
+
+  Future<void> updateLiveLocation({
+    required double latitude,
+    required double longitude,
+    double? accuracy,
+  }) async {
+    final res = await _dio.post(
+      '/api/update_live_location',
+      data: {
+        'latitude': latitude,
+        'longitude': longitude,
+        'accuracy': accuracy,
+      },
+    );
+    if (res.data['status'] != 'ok') {
+      throw Exception(res.data['message'] ?? 'Location update failed');
     }
   }
 }
